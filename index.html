@@ -411,6 +411,22 @@ body.public #panel .list input { pointer-events: none; }
 #panel :is(.phead, .hud, .pane.on, .row) { animation: none; box-shadow: 0 0 1px rgba(190, 240, 255, .8), 0 0 10px rgba(90, 195, 255, .35); background: linear-gradient(160deg, rgba(14, 40, 70, .92), rgba(8, 22, 42, .95)); }
 #panel, #panel #pTag, #panel h3 { text-shadow: none; }
 @media (max-width: 640px) { #panel { top: auto; left: 0; right: 0; bottom: 0; width: auto; height: 70%; } #panel:not(.open) { transform: translateY(110%); } }
+/* one solid panel on the right instead of separate floating pieces, so text reads against anything behind it */
+#panel {
+  top: 12px; bottom: 12px; right: 12px; left: auto; height: auto; width: min(400px, calc(100% - 24px));
+  gap: 0; background: #0d1d33; border: 1px solid rgba(150, 225, 255, .45); border-radius: 14px;
+  box-shadow: 0 0 14px rgba(90, 195, 255, .3), 0 24px 50px -20px rgba(0, 10, 30, .6);
+}
+#panel :is(.phead, .pane.on, .row) { background: none; border: 0; box-shadow: none; border-radius: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
+#panel .phead { padding: 18px 18px 10px; }
+#panel .row { padding: 4px 18px 12px; }
+#panel .tabs { align-self: stretch; margin: 0; padding: 0 18px; gap: 4px; background: none; border: 0; border-bottom: 1px solid rgba(150, 225, 255, .25); border-radius: 0; box-shadow: none; }
+#panel .tabs button { background: none; border: 0; border-bottom: 2px solid transparent; box-shadow: none; border-radius: 0; padding: 10px 8px; }
+#panel .tabs button.on { border-bottom-color: #ff9cc0; box-shadow: none; }
+#panel .pane.on { padding: 16px 18px 20px; }
+#panel:not(.open) { transform: translateX(calc(100% + 40px)); }
+@media (max-width: 640px) { #panel { width: min(340px, calc(100% - 24px)); } }
+@media (max-width: 480px) { #panel { top: auto; left: 0; right: 0; bottom: 0; width: auto; height: 70%; border-radius: 14px 14px 0 0; } #panel:not(.open) { transform: translateY(110%); } }
 
 /* modern computer: a desktop with a browser window showing the site, like a real screen */
 #os { flex: 1; display: flex; flex-direction: column; background: linear-gradient(135deg, #fbd3e0 0%, #f3b7cb 40%, #d9b7e8 100%); }
@@ -554,14 +570,6 @@ body.public #panel .list input { pointer-events: none; }
     </div>
   </div>
   <div class="row">
-    <label for="pStatus">Status</label>
-    <select id="pStatus">
-      <option value="idea">Idea</option>
-      <option value="designing">Designing</option>
-      <option value="building">Building</option>
-      <option value="testing">Testing</option>
-      <option value="paused">Paused</option>
-    </select>
     <label class="pub"><input type="checkbox" id="pPublic"> Public</label>
     <button class="ghost" id="copyPrompt">Copy prompt for a full chat</button>
   </div>
@@ -1145,7 +1153,7 @@ function buildOffice() {
   cover.position.set(0, 0.065, 0.525); hinge.add(cover);
   [-0.5, 0.5].forEach(x => box(0.08, 0.05, 0.06, mat('#cfcfd2', 0.2, 0.9), x, 0.22, -0.52, tt, 0.01));
   VINYL = { rc, doors, strips, stripLights, records, tt, platter, armPivot, ttLed, open: false, playing: null, disc: null, anim: null, armTarget: 0, lift: 0 };
-  projects['records'] = { group: rc, object: 'Record cabinet', focus: [4.4, 1.6, 0.3], view: [-3.2, 2.5, 0.9], normal: [-1, 0, 0], noPanel: true };
+  projects['records'] = { group: rc, object: 'Record cabinet', focus: [4.4, 1.45, 0.3], view: [-7.6, 0.7, 0], normal: [-1, 0, 0], noPanel: true, hide: [desk, chair] };
 
   oliveTree(4.4, -2.5, 1.05);
 
@@ -2387,7 +2395,8 @@ function pick(e) {
   const r = canvas.getBoundingClientRect();
   ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
   const targets = [...Object.values(PROJECTS).filter(p => p.room === room).map(p => p.group), ...DOORS.filter(d => d.room === room).map(d => d.group)];
-  const hit = ray.intersectObjects(targets, true)[0];
+  const shown = o => { for (; o; o = o.parent) if (!o.visible) return false; return true; };
+  const hit = ray.intersectObjects(targets, true).find(h => shown(h.object));
   for (let o = hit?.object; o; o = o.parent) {
     if (o.userData.pid) return o.userData.pid;
     if (o.userData.to) return 'door:' + o.userData.to;
@@ -2543,7 +2552,7 @@ function resize() {
   fitR = Math.max(ROOMS[room].radius, 6.8 / (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect));
   if (current) setGoal(current);
 }
-const isSheet = () => innerWidth <= 640;
+const isSheet = () => innerWidth <= 480;
 function setGoal(pid) {
   if (!pid) { goal.offX = goal.offY = 0; return; }
   const p = PROJECTS[pid];
@@ -2551,7 +2560,7 @@ function setGoal(pid) {
   // pull back a little on phones, but not so far the camera ends up behind the desk
   const portrait = camera.aspect < 1 ? Math.min(1.25, Math.max(1, 0.7 / camera.aspect)) : 1;
   goal.base.set(...p.view).multiplyScalar(portrait).add(goal.target);
-  goal.offX = isSheet() || p.computer || p.noPanel ? 0 : 228;
+  goal.offX = isSheet() || p.computer || p.noPanel ? 0 : Math.min(228, ($('#panel').offsetWidth || 400) / 2 + 8);
   goal.offY = isSheet() && !p.computer && !p.noPanel ? H * 0.32 : 0;
 }
 const right = new THREE.Vector3(), up = new THREE.Vector3(), fwd = new THREE.Vector3();
@@ -2712,8 +2721,9 @@ function frame() {
     h.position.copy(h.parent.worldToLocal(w));
   }
   renderer.render(scene, camera);
-  pcObj.visible = room === 'office' && !!PC;
-  if (pcObj.visible) { placeScreen(); css3d.render(scene, camera); }
+  pcObj.visible = room === 'office' && !!PC && PC.retro.parent.parent.visible;
+  if (pcObj.visible) placeScreen();
+  css3d.render(scene, camera);
   requestAnimationFrame(frame);
 }
 resize();
@@ -2791,7 +2801,7 @@ const panel = $('#panel');
 // objects that would block a close-up are hidden while it's open
 const setHidden = (pid, hidden) => (PROJECTS[pid]?.hide || []).forEach(o => { o.visible = !hidden; });
 function open(pid) {
-  if (PROJECTS[pid].noPanel) { if (current && current !== pid) close(); current = pid; hovered = null; $('#labels').classList.add('hide'); setGoal(pid); VINYL.open = true; return; }
+  if (PROJECTS[pid].noPanel) { if (current && current !== pid) close(); setHidden(pid, true); current = pid; hovered = null; $('#labels').classList.add('hide'); setGoal(pid); VINYL.open = true; return; }
   if (PROJECTS[pid].computer) { if (current && current !== pid) close(); current = pid; hovered = null; $('#labels').classList.add('hide'); canvas.style.pointerEvents = 'none'; showComputer(pcMode); return; }
   if (current) setHidden(current, false);
   setHidden(pid, true);
@@ -3027,7 +3037,6 @@ function renderPanel() {
   $('#pObject').textContent = PROJECTS[pid].object;
   $('#pName').textContent = d.name || NAMES[pid];
   $('#pTag').textContent = d.tagline || (window.PUBLIC ? 'Details coming soon.' : db ? '' : 'Nothing saved yet');
-  $('#pStatus').value = d.status || 'idea';
   $('#pPublic').checked = !!d.public;
 
   const steps = $('#steps'); steps.replaceChildren();
@@ -3078,7 +3087,6 @@ function renderPanel() {
   if (!fl.length) files.append(el('p', 'empty', 'No files yet.'));
 }
 
-$('#pStatus').addEventListener('change', e => save(current, { status: e.target.value }));
 // marks which projects get copied to the public site on the next sync
 $('#pPublic').addEventListener('change', e => save(current, { public: e.target.checked }));
 $('#stepForm').addEventListener('submit', e => {
@@ -3169,7 +3177,6 @@ Only use the tools when she asks you to save, add or update something.
 
 Project: ${d.name || NAMES[pid]}
 About: ${d.tagline || '(none)'}
-Status: ${d.status || 'idea'}
 Next steps:
 ${steps}
 Links:
