@@ -1310,7 +1310,8 @@ function buildOffice() {
   PC = { retro: pc, modern: pcModern, retroScreen: scr, modernScreen: modernScr };
   // both screens are windows onto the live html, so what you see from across the room is what you get up close
   const HOLE = side => new THREE.MeshBasicMaterial({ color: 0x000000, opacity: 0, blending: THREE.NoBlending, side });
-  scr.material = HOLE(THREE.FrontSide); display.material = HOLE(THREE.BackSide);
+  // the retro tube shows the scrolling amber idle screen until you sit down at it, then the live terminal
+  scr.userData.idle = scr.material; scr.userData.hole = HOLE(THREE.FrontSide); display.material = HOLE(THREE.BackSide);
   setPcMode(pcMode);
   projects['computer'] = { group: pcWrap, object: 'Computer', focus: [0.15, 3.32, -0.1], view: [0, 0.12, 2.4], normal: [0, 0, 1], computer: true };
 
@@ -2741,7 +2742,9 @@ function frame() {
     h.position.copy(h.parent.worldToLocal(w));
   }
   renderer.render(scene, camera);
-  pcObj.visible = room === 'office' && !!PC && PC.retro.parent.parent.visible;
+  const idle = !!PC && pcMode === 'retro' && current !== 'computer';
+  if (PC) PC.retroScreen.material = idle ? PC.retroScreen.userData.idle : PC.retroScreen.userData.hole;
+  pcObj.visible = room === 'office' && !!PC && PC.retro.parent.parent.visible && !idle;
   if (pcObj.visible) placeScreen();
   css3d.render(scene, camera);
   requestAnimationFrame(frame);
