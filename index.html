@@ -1215,17 +1215,17 @@ function buildOffice() {
   // solid curved slabs (an annulus sector stood up on end), so the bezel and back have real edges and thickness
   const slab = (r0, r1, a, h, m) => {
     const sh = new THREE.Shape(), N = 32;
-    for (let i = 0; i <= N; i++) { const t = -a / 2 + a * i / N; i ? sh.lineTo(r0 * Math.sin(t), R - r0 * Math.cos(t)) : sh.moveTo(r0 * Math.sin(t), R - r0 * Math.cos(t)); }
-    for (let i = N; i >= 0; i--) { const t = -a / 2 + a * i / N; sh.lineTo(r1 * Math.sin(t), R - r1 * Math.cos(t)); }
+    for (let i = 0; i <= N; i++) { const t = -a / 2 + a * i / N; i ? sh.lineTo(r0 * Math.sin(t), r0 * Math.cos(t) - R) : sh.moveTo(r0 * Math.sin(t), r0 * Math.cos(t) - R); }
+    for (let i = N; i >= 0; i--) { const t = -a / 2 + a * i / N; sh.lineTo(r1 * Math.sin(t), r1 * Math.cos(t) - R); }
     const g = new THREE.ExtrudeGeometry(sh, { depth: h, bevelEnabled: true, bevelThickness: 0.008, bevelSize: 0.008, bevelSegments: 2, curveSegments: 4 });
-    g.rotateX(-Math.PI / 2); g.translate(0, panelY - h / 2, frontZ - R);
+    g.rotateX(-Math.PI / 2); g.translate(0, panelY - h / 2, frontZ);
     const mesh = new THREE.Mesh(g, m); mesh.castShadow = mesh.receiveShadow = true; pcModern.add(mesh); return mesh;
   };
   slab(R, R + 0.035, ARC, 0.92, new THREE.MeshStandardMaterial({ color: '#141418', roughness: 0.35 }));
   slab(R + 0.035, R + 0.075, ARC - 0.01, 0.86, new THREE.MeshStandardMaterial({ color: '#f2f0f2', roughness: 0.4 }));
   // the glass: a curved hole cut through the canvas so the live page behind it shows through
   const DISP = 1.5 / R;
-  const display = new THREE.Mesh(new THREE.CylinderGeometry(R - 0.004, R - 0.004, 0.84, 48, 1, true, Math.PI - DISP / 2, DISP), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+  const display = new THREE.Mesh(new THREE.CylinderGeometry(R - 0.014, R - 0.014, 0.84, 48, 1, true, Math.PI - DISP / 2, DISP), new THREE.MeshBasicMaterial({ color: 0x000000 }));
   display.position.set(0, panelY, frontZ + R); pcModern.add(display);
   box(0.5, 0.05, 0.12, mat('#f2f0f2', 0.4), 0, panelY - 0.4, frontZ - 0.12, pcModern, 0.03);
   box(0.5, 0.008, 0.02, new THREE.MeshBasicMaterial({ color: '#7fd3ff', toneMapped: false }), 0, panelY - 0.465, frontZ - 0.01, pcModern, 0);
