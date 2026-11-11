@@ -2045,17 +2045,18 @@ function buildWorkshop() {
   halo('#ff6a4a', 0.7, 0.7, 0.16, 0.08, slope, 0.25);
   // monitor hood with a deep frame around a light blue screen
   // the hood goes all the way down to the bench top so it doesn't hover behind the slope
-  box(1.55, 1.55, 0.86, CR, 0, 0.775, -0.55, cc, 0.05);
-  box(1.36, 0.95, 0.04, CR2, 0, 1.0, -0.09, cc, 0.03);
-  box(1.18, 0.74, 0.02, DARK, 0, 1.03, -0.07, cc, 0.03);
-  const blue = canvasTex(256, 160, (g, w, h) => {
+  // as wide as the control desk below it
+  box(2.14, 1.55, 0.86, CR, 0, 0.775, -0.55, cc, 0.05);
+  box(1.94, 0.95, 0.04, CR2, 0, 1.0, -0.09, cc, 0.03);
+  box(1.76, 0.74, 0.02, DARK, 0, 1.03, -0.07, cc, 0.03);
+  const blue = canvasTex(400, 160, (g, w, h) => {
     g.fillStyle = '#8fd6e6'; g.fillRect(0, 0, w, h); g.strokeStyle = 'rgba(20,50,70,.55)'; g.lineWidth = 1.5;
     g.beginPath(); g.ellipse(w / 2, h / 2, 70, 48, 0, 0, 7); g.stroke(); g.beginPath(); g.moveTo(w / 2, 10); g.lineTo(w / 2, h - 10); g.moveTo(30, h / 2); g.lineTo(w - 30, h / 2); g.stroke();
     for (let i = 0; i < 14; i++) { g.beginPath(); g.moveTo(20 + rand() * 40, 20 + i * 9); g.lineTo(60 + rand() * 20, 20 + i * 9); g.stroke(); g.beginPath(); g.moveTo(w - 70 + rand() * 20, 20 + i * 9); g.lineTo(w - 25, 20 + i * 9); g.stroke(); }
     g.fillStyle = '#c8455a'; g.beginPath(); g.arc(w / 2, h / 2, 5, 0, 7); g.fill();
   });
-  plane(1.1, 0.66, new THREE.MeshBasicMaterial({ map: blue, toneMapped: false }), 0, 1.05, -0.055, 0, cc);
-  box(1.0, 0.07, 0.02, DARK, 0, 0.62, -0.075, cc, 0.01);
+  plane(1.68, 0.66, new THREE.MeshBasicMaterial({ map: blue, toneMapped: false }), 0, 1.05, -0.055, 0, cc);
+  box(1.5, 0.07, 0.02, DARK, 0, 0.62, -0.075, cc, 0.01);
   // seatback monitor testbench from the summer internship: two pink rounded-triangle end handles with a divider,
   // din rails running into them across the sloped front and the back, the relays, plc and interface pcb on the
   // front rails, and the seatback display mounted to the back rails on a bracket
