@@ -1091,28 +1091,54 @@ function buildOffice() {
   box(2.3, 0.04, 1.08, WALNUT, 0, 1.1, 0, rc, 0.01);
   box(0.04, 1.9, 1.08, WALNUT, 0, 1.1, 0, rc, 0.01);
   // records: sleeves standing spine-out in all four cubbies, each one a different album
+  // sixteen records, one per genre. each is an original sleeve and an original tune in the style named
+  // key/prog: harmony (scale degrees), scale: melody notes, pad/bass/drums: arrangement, mel: how busy the lead is
   const ALBUMS = [
-    { title: 'Late Night Jazz', c: ['#1f3b57', '#e8c27a'], bpm: 84, root: 50, wave: 'triangle', prog: [0, 5, 3, 7] },
-    { title: 'City Pop Drive', c: ['#f29bbd', '#7fd3c8'], bpm: 104, root: 55, wave: 'sawtooth', prog: [0, 4, 5, 3] },
-    { title: 'Lo-fi Study', c: ['#a9b79a', '#f4efe6'], bpm: 76, root: 53, wave: 'sine', prog: [0, 3, 5, 4] },
-    { title: 'Film Scores', c: ['#2a2624', '#c8455a'], bpm: 70, root: 48, wave: 'triangle', prog: [0, 8, 5, 7] },
-    { title: 'Bossa Mornings', c: ['#e8702a', '#fff1d6'], bpm: 96, root: 57, wave: 'sine', prog: [0, 2, 5, 7] },
-    { title: 'Synth Dreams', c: ['#5b4a9e', '#ff9cc0'], bpm: 110, root: 52, wave: 'square', prog: [0, 5, 7, 3] },
-    { title: 'Piano Rain', c: ['#d8dde2', '#3b4a5a'], bpm: 66, root: 60, wave: 'sine', prog: [0, 9, 5, 7] },
-    { title: 'Funk Kitchen', c: ['#c8a13a', '#2b2b30'], bpm: 112, root: 45, wave: 'sawtooth', prog: [0, 0, 5, 7] },
+    { title: 'Late Night Jazz', c: ['#1f3b57', '#e8c27a'], art: 'moon', bpm: 84, root: 50, key: 'major', prog: [1, 4, 0, 5], scale: 'dorian', pad: 'piano', bass: 'walk', drums: 'jazz', mel: 0.5, wave: 'triangle' },
+    { title: 'City Pop Drive', c: ['#f29bbd', '#7fd3c8'], art: 'sun', bpm: 104, root: 55, key: 'major', prog: [3, 2, 1, 4], scale: 'major', pad: 'stab', bass: 'walk', drums: 'four', mel: 0.5, wave: 'sawtooth', lp: 2000 },
+    { title: 'Lo-fi Study', c: ['#a9b79a', '#f4efe6'], art: 'rain', bpm: 76, root: 53, key: 'major', prog: [3, 2, 5, 0], scale: 'penta', pad: 'pad', bass: 'root', drums: 'boombap', mel: 0.35, wave: 'triangle', lp: 1400 },
+    { title: 'Bossa Mornings', c: ['#e8702a', '#fff1d6'], art: 'waves', bpm: 96, root: 57, key: 'major', prog: [0, 5, 1, 4], scale: 'major', pad: 'piano', bass: 'walk', drums: 'bossa', mel: 0.4, wave: 'sine' },
+    { title: 'Synth Dreams', c: ['#5b4a9e', '#ff9cc0'], art: 'grid', bpm: 110, root: 52, key: 'minor', prog: [0, 5, 2, 6], scale: 'minor', pad: 'arp', bass: 'root', drums: 'four', mel: 0.3, wave: 'square' },
+    { title: 'Funk Kitchen', c: ['#c8a13a', '#2b2b30'], art: 'stripes', bpm: 112, root: 45, key: 'minor', prog: [0, 0, 3, 4], scale: 'mpenta', pad: 'stab', bass: 'walk', drums: 'funk', mel: 0.4, wave: 'sawtooth' },
+    { title: 'Summer Spirits', c: ['#9fd4e8', '#fdf6e3'], art: 'cloud', bpm: 88, root: 60, key: 'major', prog: [3, 4, 2, 5], scale: 'major', pad: 'piano', bass: 'root', drums: 'none', mel: 0.6, melDur: 1, wave: 'sine' },
+    { title: 'Bedroom Whispers', c: ['#141414', '#8fe36a'], art: 'eye', bpm: 70, root: 50, key: 'minor', prog: [0, 3, 5, 4], scale: 'minor', pad: 'pad', bass: '808', drums: 'snap', mel: 0.25, wave: 'sine', lp: 1100 },
+    { title: 'Crimson Static', c: ['#8e1b1b', '#f1d2c4'], art: 'rose', bpm: 90, root: 52, key: 'minor', prog: [0, 3, 6, 5], scale: 'mpenta', pad: 'stab', bass: 'walk', drums: 'boombap', mel: 0.45, wave: 'sawtooth', lp: 1800 },
+    { title: 'Mirror Talk', c: ['#d9c8a6', '#3a2f28'], art: 'rings', bpm: 72, root: 52, key: 'major', prog: [0, 2, 3, 4], scale: 'penta', pad: 'pad', bass: 'root', drums: 'boombap', mel: 0.3, melDur: 1, wave: 'triangle', lp: 1500 },
+    { title: '月下独白', c: ['#2c3e66', '#f3e1b6'], art: 'moon', bpm: 68, root: 57, key: 'major', prog: [0, 4, 5, 2], scale: 'penta', pad: 'piano', bass: 'root', drums: 'ballad', mel: 0.55, melDur: 1, wave: 'sine' },
+    { title: '招财夜市', c: ['#b3121f', '#f6c445'], art: 'coin', bpm: 140, root: 50, key: 'minor', prog: [0, 5, 3, 4], scale: 'mpenta', pad: 'none', bass: '808', drums: 'trap', mel: 0.6, wave: 'triangle' },
+    { title: 'Glass Choir', c: ['#2a1f3d', '#c9b8ff'], art: 'diamond', bpm: 64, root: 48, key: 'minor', prog: [0, 3, 0, 4], scale: 'minor', pad: 'choir', bass: 'root', drums: 'ballad', mel: 0.3, melDur: 1.5, wave: 'sine' },
+    { title: 'Velvet Haze', c: ['#f2c6d8', '#6d5a8a'], art: 'circle', bpm: 92, root: 54, key: 'major', prog: [0, 5, 3, 0], scale: 'lydian', pad: 'arp', bass: 'root', drums: 'four', mel: 0.3, wave: 'triangle', lp: 1300 },
+    { title: 'Lagos Sunset', c: ['#f08a24', '#1d6b4f'], art: 'sun', bpm: 108, root: 55, key: 'major', prog: [0, 3, 4, 3], scale: 'penta', pad: 'stab', bass: 'walk', drums: 'afro', mel: 0.45, wave: 'square' },
+    { title: 'Rainy Strings', c: ['#5d7286', '#e9eef2'], art: 'rain', bpm: 72, root: 55, key: 'minor', prog: [0, 3, 4, 0], scale: 'minor', pad: 'pad', bass: 'root', drums: 'none', mel: 0.5, melDur: 1, wave: 'sawtooth', lp: 1600 },
   ];
+  const drawCover = (al, g, w, h) => {
+    const [a, b] = al.c; g.fillStyle = a; g.fillRect(0, 0, w, h); g.fillStyle = b; g.strokeStyle = b; g.lineWidth = 6;
+    const cx = w / 2, cy = h * 0.42;
+    ({
+      moon: () => { g.beginPath(); g.arc(cx, cy, 34, 0, 7); g.fill(); g.fillStyle = a; g.beginPath(); g.arc(cx + 16, cy - 10, 30, 0, 7); g.fill(); },
+      sun: () => { g.beginPath(); g.arc(cx, cy + 10, 34, Math.PI, 0); g.fill(); for (let i = 0; i < 5; i++) g.fillRect(14, cy + 18 + i * 9, w - 28, 4); },
+      rain: () => { g.lineWidth = 3; for (let i = 0; i < 14; i++) { const x = (i * 37) % w, y = (i * 53) % (h * 0.7); g.beginPath(); g.moveTo(x, y); g.lineTo(x - 8, y + 22); g.stroke(); } },
+      waves: () => { for (let j = 0; j < 4; j++) { g.beginPath(); for (let x = 0; x <= w; x += 4) g.lineTo(x, 30 + j * 20 + Math.sin(x * 0.08 + j) * 7); g.stroke(); } },
+      grid: () => { g.lineWidth = 2; for (let i = 0; i < 9; i++) { g.beginPath(); g.moveTo(cx, cy - 6); g.lineTo(i * w / 8, h * 0.78); g.stroke(); } for (let j = 0; j < 5; j++) { const y = cy + 6 + j * j * 4; g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); } },
+      stripes: () => { for (let i = 0; i < 6; i++) { g.fillStyle = i % 2 ? b : '#e8702a'; g.fillRect(0, 14 + i * 13, w, 8); } },
+      cloud: () => { [[-22, 6, 22], [0, -8, 28], [24, 6, 20]].forEach(([dx, dy, r]) => { g.beginPath(); g.arc(cx + dx, cy + dy, r, 0, 7); g.fill(); }); g.fillRect(cx - 44, cy + 6, 88, 20); },
+      eye: () => { g.beginPath(); g.ellipse(cx, cy, 44, 22, 0, 0, 7); g.stroke(); g.beginPath(); g.arc(cx, cy, 12, 0, 7); g.fill(); },
+      rose: () => { for (let r = 30; r > 4; r -= 7) { g.beginPath(); g.arc(cx + (r % 3), cy, r, 0.3, 5.9); g.stroke(); } },
+      rings: () => { g.lineWidth = 3; for (let r = 8; r < 52; r += 9) { g.beginPath(); g.arc(cx, cy, r, 0, 7); g.stroke(); } },
+      coin: () => { g.beginPath(); g.arc(cx, cy, 34, 0, 7); g.fill(); g.fillStyle = a; g.fillRect(cx - 9, cy - 9, 18, 18); },
+      diamond: () => { g.beginPath(); g.moveTo(cx, cy - 40); g.lineTo(cx + 30, cy); g.lineTo(cx, cy + 40); g.lineTo(cx - 30, cy); g.closePath(); g.stroke(); g.lineWidth = 2; g.beginPath(); g.moveTo(cx - 30, cy); g.lineTo(cx + 30, cy); g.stroke(); },
+      circle: () => { g.globalAlpha = 0.7; g.beginPath(); g.arc(cx - 12, cy, 30, 0, 7); g.fill(); g.beginPath(); g.arc(cx + 14, cy + 8, 26, 0, 7); g.fill(); g.globalAlpha = 1; },
+    })[al.art]();
+    g.fillStyle = b; g.font = `700 13px ui-rounded, system-ui, sans-serif`; g.textAlign = 'left'; g.fillText(al.title, 10, h - 12);
+  };
   const records = [];
-  [[-1, 0.16], [1, 0.16], [-1, 1.12], [1, 1.12]].forEach(([side, y0], cub) => {
-    const n = 14;
-    for (let i = 0; i < n; i++) {
-      const al = ALBUMS[(i + cub * 3) % ALBUMS.length];
-      const cover = canvasTex(64, 64, (g, w, h) => { g.fillStyle = al.c[0]; g.fillRect(0, 0, w, h); g.fillStyle = al.c[1]; g.fillRect(0, h * 0.62, w, 8); g.beginPath(); g.arc(w * 0.7, h * 0.32, 12, 0, 7); g.fill(); });
-      const spine = canvasTex(8, 64, (g, w, h) => { g.fillStyle = al.c[0]; g.fillRect(0, 0, w, h); g.fillStyle = al.c[1]; g.fillRect(0, h * 0.2, w, h * 0.35); });
-      const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.6, 0.6), [texMat(cover, 0.7), texMat(cover, 0.7), mat(al.c[0], 0.7), mat(al.c[0], 0.7), texMat(spine, 0.7), mat(al.c[0], 0.7)]);
-      const x = side * (0.08 + i * 0.072);
-      sleeve.position.set(x, y0 + 0.31, -0.18); sleeve.rotation.z = side * 0.04 * (i % 3 - 1);
-      sleeve.castShadow = true; sleeve.userData = { album: al, home: sleeve.position.clone() }; rc.add(sleeve); records.push(sleeve);
-    }
+  ALBUMS.forEach((al, n) => {
+    const cub = Math.floor(n / 4), i = n % 4, side = cub % 2 ? 1 : -1, y0 = cub < 2 ? 0.16 : 1.12;
+    const cover = canvasTex(128, 128, (g, w, h) => drawCover(al, g, w, h));
+    const spine = canvasTex(8, 64, (g, w, h) => { g.fillStyle = al.c[0]; g.fillRect(0, 0, w, h); g.fillStyle = al.c[1]; g.fillRect(0, h * 0.2, w, h * 0.35); });
+    const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.76, 0.76), [texMat(cover, 0.7), texMat(cover, 0.7), mat(al.c[0], 0.7), mat(al.c[0], 0.7), texMat(spine, 0.7), mat(al.c[0], 0.7)]);
+    sleeve.position.set(side * (0.1 + i * 0.07), y0 + 0.39, -0.13);
+    sleeve.castShadow = true; sleeve.userData = { album: al, home: sleeve.position.clone() }; rc.add(sleeve); records.push(sleeve);
   });
   // warm strip lights under the top of each cubby, off until the doors open
   const strips = [], stripLights = [];
@@ -2433,34 +2459,74 @@ function pickRecord(e) {
   return ray.intersectObjects(VINYL.records, false)[0]?.object || null;
 }
 let AC = null, music = null;
+const SCALES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], dorian: [0, 2, 3, 5, 7, 9, 10], lydian: [0, 2, 4, 6, 7, 9, 11], penta: [0, 2, 4, 7, 9], mpenta: [0, 3, 5, 7, 10] };
+const DRUMS = {
+  boombap: { k: 'k.....k...k.....', s: '....s.......s...', h: 'h.h.h.h.h.h.h.h.' },
+  trap: { k: 'k......k..k.....', s: '........s.......', h: 'hhhhhhhhhhhhhhhh', roll: true },
+  four: { k: 'k...k...k...k...', s: '....s.......s...', h: '..h...h...h...h.' },
+  funk: { k: 'k..k..k...k..k..', s: '....s.......s...', h: 'hhhhhhhhhhhhhhhh' },
+  bossa: { k: 'k..k..k.k..k..k.', s: '..s..s....s..s..', h: 'h.h.h.h.h.h.h.h.', soft: true },
+  snap: { k: 'k.........k.....', s: '....s.......s...', h: '', snap: true },
+  ballad: { k: 'k.......k.k.....', s: '........s.......', h: 'h...h...h...h...', soft: true },
+  jazz: { k: '', s: '', h: 'h..h.hh.h..h.hh.', soft: true },
+  afro: { k: 'k.....k...k.....', s: '....s..s....s...', h: 'h.hhh.hhh.hhh.hh' },
+  none: { k: '', s: '', h: '' },
+};
 function startMusic(al) {
   stopMusic();
   try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); } catch { return; }
   const out = AC.createGain(); out.gain.value = 0; out.connect(AC.destination);
   out.gain.linearRampToValueAtTime(0.16, AC.currentTime + 1.2);
-  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2400; lp.connect(out);
-  // vinyl crackle
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = al.lp || 2400; lp.connect(out);
+  // vinyl crackle, and a noise buffer the snares and hats share
   const nb = AC.createBuffer(1, AC.sampleRate * 2, AC.sampleRate), nd = nb.getChannelData(0);
   for (let i = 0; i < nd.length; i++) nd[i] = Math.random() < 0.0009 ? (Math.random() - 0.5) * 0.9 : (Math.random() - 0.5) * 0.012;
   const crackle = AC.createBufferSource(); crackle.buffer = nb; crackle.loop = true; crackle.connect(out); crackle.start();
+  const wb = AC.createBuffer(1, AC.sampleRate * 0.5, AC.sampleRate), wd = wb.getChannelData(0);
+  for (let i = 0; i < wd.length; i++) wd[i] = Math.random() * 2 - 1;
   const hz = n => 440 * Math.pow(2, (n - 69) / 12);
-  const beat = 60 / al.bpm; let next = AC.currentTime + 0.3, step = 0;
-  const note = (n, t, dur, vol, wave) => {
+  const note = (n, t, dur, vol, wave, att = 0.03) => {
     const o = AC.createOscillator(), g = AC.createGain(); o.type = wave; o.frequency.value = hz(n);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.03); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
-    o.connect(g); g.connect(lp); o.start(t); o.stop(t + dur + 0.05);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + att); g.gain.exponentialRampToValueAtTime(0.0008, t + Math.max(dur, att + 0.05));
+    o.connect(g); g.connect(lp); o.start(t); o.stop(t + dur + 0.1);
   };
-  const kick = t => { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.15);
-    g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25); o.connect(g); g.connect(lp); o.start(t); o.stop(t + 0.3); };
-  const scale = [0, 2, 3, 5, 7, 9, 10, 12];
+  const noise = (t, type, f, dur, vol) => {
+    const s = AC.createBufferSource(), fl = AC.createBiquadFilter(), g = AC.createGain(); s.buffer = wb; fl.type = type; fl.frequency.value = f;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur); s.connect(fl); fl.connect(g); g.connect(lp); s.start(t); s.stop(t + dur + 0.02);
+  };
+  const kick = (t, v) => { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25); o.connect(g); g.connect(lp); o.start(t); o.stop(t + 0.3); };
+  const sub = (n, t, dur) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(hz(n + 7), t); o.frequency.exponentialRampToValueAtTime(hz(n), t + 0.08);
+    g.gain.setValueAtTime(0.32, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur); o.connect(g); g.connect(lp); o.start(t); o.stop(t + dur + 0.05); };
+  // diatonic seventh chords stacked from the key, so each progression sounds like its genre without hand-writing every chord
+  const keyS = SCALES[al.key], melS = SCALES[al.scale];
+  const chordOf = d => [0, 2, 4, 6].map(k => keyS[(d + k) % 7] + 12 * Math.floor((d + k) / 7));
+  const beat = 60 / al.bpm, dr = DRUMS[al.drums], dv = dr.soft ? 0.5 : 1;
+  let next = AC.currentTime + 0.3, step = 0, mi = melS.length;
   const timer = setInterval(() => {
     while (next < AC.currentTime + 0.4) {
-      const bar = Math.floor(step / 8), chord = al.root + al.prog[bar % al.prog.length], t = next;
-      if (step % 8 === 0) [0, 3 + (chord % 2), 7, 10].forEach(i => note(chord + i, t, beat * 4.2, 0.05, al.wave === 'square' ? 'triangle' : al.wave));
-      if (step % 2 === 0) note(chord - 12, t, beat * 0.9, 0.12, 'sine');
-      if (step % 4 === 0) kick(t);
-      if (Math.random() < 0.55) note(chord + 12 + scale[(step * 3 + bar) % scale.length], t, beat * 0.6, 0.045, al.wave);
-      next += beat / 2; step++;
+      const t = next, i = step % 16, bar = Math.floor(step / 16), deg = al.prog[bar % al.prog.length], ch = chordOf(deg), r = al.root + keyS[deg];
+      // chords
+      if (al.pad === 'pad' && i === 0) ch.forEach(c => note(al.root + c, t, beat * 4.2, 0.045, al.wave === 'square' ? 'triangle' : al.wave, 0.3));
+      if (al.pad === 'choir' && i === 0) ch.forEach(c => { note(al.root + c, t, beat * 4.4, 0.05, 'sine', 0.8); note(al.root + c + 12, t, beat * 4.4, 0.025, 'triangle', 0.9); });
+      if (al.pad === 'arp' && i % 2 === 0) note(al.root + ch[(i / 2) % 4] + 12, t, beat * 0.5, 0.045, al.wave);
+      if (al.pad === 'piano' && i % 4 === 0) { note(al.root + ch[i / 4] + (i ? 12 : 0), t, beat * 2, 0.06, 'triangle', 0.005); if (!i) note(al.root + ch[2], t, beat * 3, 0.04, 'triangle', 0.005); }
+      if (al.pad === 'stab' && i % 4 === 2) ch.slice(0, 3).forEach(c => note(al.root + c + 12, t, beat * 0.3, 0.035, al.wave, 0.005));
+      // bass
+      if (al.bass === 'root' && i % 8 === 0) note(r - 12, t, beat * 1.8, 0.12, 'sine');
+      if (al.bass === 'walk' && i % 4 === 0) note(r - 12 + [0, 7, 10, 5][i / 4] - (al.key === 'major' && i === 8 ? 1 : 0), t, beat * 0.9, 0.12, 'triangle', 0.01);
+      if (al.bass === '808' && (i === 0 || i === 10)) sub(r - 24, t, beat * (i ? 1.5 : 2.5));
+      // drums
+      if (dr.k[i] === 'k' && al.bass !== '808') kick(t, 0.5 * dv);
+      if (dr.k[i] === 'k' && al.bass === '808') kick(t, 0.25);
+      if (dr.s[i] === 's') dr.snap ? noise(t, 'highpass', 2500, 0.07, 0.25) : noise(t, 'bandpass', 1800, 0.15, 0.22 * dv);
+      if (dr.h[i] === 'h') { noise(t, 'highpass', 7000, 0.04, 0.05 * dv); if (dr.roll && Math.random() < 0.15) for (let k = 1; k < 3; k++) noise(t + k * beat / 12, 'highpass', 7000, 0.03, 0.035); }
+      // a lead that wanders step by step through the melody scale
+      if (i % 2 === 0 && Math.random() < al.mel) {
+        mi = Math.min(melS.length * 2, Math.max(0, mi + Math.round(Math.random() * 4 - 2)));
+        note(al.root + 12 + melS[mi % melS.length] + 12 * Math.floor(mi / melS.length), t, beat * (al.melDur || 0.6), 0.045, al.wave);
+      }
+      next += beat / 4; step++;
     }
   }, 100);
   music = { out, timer, crackle };
@@ -2487,22 +2553,20 @@ function playRecord(sleeve) {
   stopRecord(true);
   if (same) return;
   const al = sleeve.userData.album;
-  const disc = makeDisc(al); V.rc.add(disc); V.disc = disc;
-  // slide straight out of the cubby, rise in front of the cabinet while turning flat, then drop onto the spindle
-  const from = sleeve.position.clone().add(new THREE.Vector3(0, 0.03, 0.3));
+  // the sleeve comes out and turns to show its cover, then the vinyl slides out the top and flies to the platter
+  const show = new THREE.Vector3(0, 1.3, 1.0);
+  const disc = makeDisc(al); disc.visible = false; V.rc.add(disc); V.disc = disc;
   const to = new THREE.Vector3(V.platter.position.x, V.tt.position.y + V.platter.position.y + 0.04, V.platter.position.z);
-  const path = new THREE.CatmullRomCurve3([from, new THREE.Vector3(from.x, from.y + 0.02, 1.05), new THREE.Vector3((from.x + to.x) / 2, 2.75, 1.0),
-    new THREE.Vector3(to.x, to.y + 0.38, to.z + 0.25), new THREE.Vector3(to.x, to.y + 0.12, to.z), to], false, 'centripetal');
-  disc.position.copy(from); disc.rotation.set(0, 0, Math.PI / 2);
-  V.playing = sleeve; V.anim = { t: 0, sleeve, disc, path, to, al };
-  startMusic.pending = al;
+  const path = new THREE.CatmullRomCurve3([new THREE.Vector3(show.x, show.y + 0.78, show.z), new THREE.Vector3((show.x + to.x) / 2, 2.95, 0.75),
+    new THREE.Vector3(to.x, to.y + 0.35, to.z + 0.15), new THREE.Vector3(to.x, to.y + 0.1, to.z), to], false, 'centripetal');
+  V.playing = sleeve; V.anim = { t: 0, sleeve, disc, show, path, to, al };
   // unlock audio inside the click itself so browsers allow it
   try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); } catch {}
 }
 function stopRecord(quick) {
   const V = VINYL; if (!V) return;
   stopMusic(); V.armTarget = 0; V.anim = null;
-  if (V.playing) { V.playing.position.copy(V.playing.userData.home); V.playing = null; }
+  if (V.playing) { V.playing.position.copy(V.playing.userData.home); V.playing.rotation.set(0, 0, 0); V.playing.scale.setScalar(1); V.playing = null; }
   if (V.disc) { V.rc.remove(V.disc); V.disc = null; }
   V.ttLed.material.color.set('#3a2a2a');
 }
@@ -2519,17 +2583,22 @@ TICKS.push({ room: 'office', fn: t => {
   V.stripLights.forEach(l => l.intensity = V.lightK * 1.6);
   V.records.forEach(r => { if (r === V.playing) return; const tz = r.userData.home.z + (r.userData.hover ? 0.12 : 0); r.position.z += (tz - r.position.z) * k * 1.5; });
   // record animation: sleeve slides out, vinyl lifts free, arcs up and lands on the platter
-  const A = V.anim;
+  const A = V.anim, cl = x => Math.min(1, Math.max(0, x));
   if (A) {
     A.t += dt;
-    const s = A.sleeve, home = s.userData.home;
-    if (A.t < 0.5) s.position.z = home.z + 0.35 * ease(A.t / 0.5);
-    const u = Math.min(1, Math.max(0, (A.t - 0.4) / 2.2)), e = ease(u);
-    A.path.getPoint(e, A.disc.position);
-    A.disc.rotation.z = (Math.PI / 2) * (1 - ease(Math.min(1, Math.max(0, (e - 0.2) / 0.35))));
-    if (A.t > 1.0 && A.t < 2.0) s.position.z += ((home.z) - s.position.z) * k;
-    if (u >= 1 && !A.landed) { A.landed = true; s.position.copy(home); A.disc.rotation.set(0, 0, 0); A.disc.position.copy(A.to); V.armTarget = -0.72; A.armAt = A.t; }
-    if (A.landed && A.t - A.armAt > 1.1) { startMusic(A.al); V.ttLed.material.color.set('#ff5a4a'); V.anim = null; }
+    const s = A.sleeve, home = s.userData.home, D = A.disc;
+    // out and around to face you, hold, then back into its slot once the record has left
+    const back = cl((A.t - 2.6) / 0.8), u = A.t < 2.6 ? ease(cl(A.t / 0.7)) : 1 - ease(back);
+    s.position.lerpVectors(home, A.show, u); s.rotation.y = -Math.PI / 2 * u; s.scale.setScalar(1 + 0.3 * u);
+    if (A.t < 2.2) {
+      D.visible = A.t > 1.4; D.rotation.set(Math.PI / 2, 0, 0);
+      D.position.set(A.show.x, A.show.y + 0.78 * ease(cl((A.t - 1.4) / 0.8)), A.show.z);
+    } else {
+      const k = cl((A.t - 2.2) / 1.8), e = ease(k);
+      A.path.getPoint(e, D.position); D.rotation.set(Math.PI / 2 * (1 - ease(cl((e - 0.15) / 0.45))), 0, 0);
+      if (k >= 1 && !A.landed) { A.landed = true; D.rotation.set(0, 0, 0); D.position.copy(A.to); V.armTarget = -0.72; A.armAt = A.t; }
+    }
+    if (A.landed && A.t - A.armAt > 1.1) { s.position.copy(home); s.rotation.set(0, 0, 0); s.scale.setScalar(1); startMusic(A.al); V.ttLed.material.color.set('#ff5a4a'); V.anim = null; }
   }
   // tonearm: swings across, lifted while moving, then lowers onto the groove
   const ar = V.armPivot, moving = Math.abs(V.armTarget - ar.rotation.y) > 0.02;
