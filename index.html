@@ -555,7 +555,7 @@ const canvas = $('#scene');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = THREE.VSMShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.88;
 const scene = new THREE.Scene();
@@ -574,13 +574,19 @@ function grain() {
   if (grainTex) return grainTex;
   const c = document.createElement('canvas'); c.width = c.height = 256;
   const g = c.getContext('2d'), d = g.createImageData(256, 256);
-  for (let i = 0; i < d.data.length; i += 4) { const n = 205 + Math.random() * 50; d.data[i] = d.data[i + 1] = d.data[i + 2] = n; d.data[i + 3] = 255; }
+  for (let i = 0; i < d.data.length; i += 4) { const n = 238 + Math.random() * 17; d.data[i] = d.data[i + 1] = d.data[i + 2] = n; d.data[i + 3] = 255; }
   g.putImageData(d, 0, 0);
-  grainTex = new THREE.CanvasTexture(c); grainTex.wrapS = grainTex.wrapT = THREE.RepeatWrapping; grainTex.repeat.set(3, 3);
+  // soft blotches on top, like hand-painted or slightly worn surfaces
+  for (let i = 0; i < 60; i++) {
+    const x = Math.random() * 256, y = Math.random() * 256, r = 10 + Math.random() * 40, rg = g.createRadialGradient(x, y, 0, x, y, r);
+    rg.addColorStop(0, `rgba(${Math.random() < 0.5 ? '255,255,255' : '120,100,90'},${0.04 + Math.random() * 0.05})`); rg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = rg; g.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  grainTex = new THREE.CanvasTexture(c); grainTex.colorSpace = THREE.SRGBColorSpace; grainTex.wrapS = grainTex.wrapT = THREE.RepeatWrapping; grainTex.repeat.set(3, 3);
   return grainTex;
 }
 function mat(c, rough = 0.7, metal = 0) {
-  return mats[c + rough + metal] ??= new THREE.MeshStandardMaterial({ color: c, roughness: rough, metalness: metal, envMapIntensity: 0.38, bumpMap: grain(), bumpScale: 0.15 });
+  return mats[c + rough + metal] ??= new THREE.MeshStandardMaterial({ color: c, roughness: rough, metalness: metal, envMapIntensity: 0.38, map: grain(), bumpMap: grain(), bumpScale: 0.2 });
 }
 const asMat = c => c.isMaterial ? c : mat(c);
 function box(w, h, d, c, x, y, z, parent = ROOT, r = 0.06) {
@@ -1078,26 +1084,42 @@ function buildOffice() {
   drawCrt(0);
   TICKS.push({ room: 'office', fn: t => { if (t - crtLast > 0.15) { crtLast = t; drawCrt(t); } } });
   const CREAM = mat('#ece5d4', 0.55), CREAM_DK = mat('#ddd4bf', 0.6);
-  const pc = new THREE.Group(); pc.position.set(0.15, 2.53, -0.3); pc.scale.setScalar(1.15); desk.add(pc);
-  box(0.8, 0.14, 0.6, CREAM_DK, 0, 0.07, -0.3, pc, 0.03);
-  box(1.3, 1.0, 0.6, CREAM, 0, 0.66, -0.15, pc, 0.06);
-  const backShape = new THREE.Shape([new THREE.Vector2(0, 0), new THREE.Vector2(0.3, 0), new THREE.Vector2(0.3, 0.75), new THREE.Vector2(0, 0.95)]);
-  const backGeo = new THREE.ExtrudeGeometry(backShape, { depth: 1.2, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 2 });
-  backGeo.translate(0, 0, -0.6); backGeo.rotateY(Math.PI / 2);
-  const crtBack = new THREE.Mesh(backGeo, CREAM); crtBack.position.set(0, 0.2, -0.45); crtBack.castShadow = crtBack.receiveShadow = true; pc.add(crtBack);
-  box(1.12, 0.84, 0.03, '#2a2624', 0, 0.68, 0.15, pc, 0.04);
-  const scr = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.72), new THREE.MeshBasicMaterial({ map: crtTex, toneMapped: false })); scr.position.set(0, 0.68, 0.17); pc.add(scr);
-  const kbShape = new THREE.Shape([new THREE.Vector2(0, 0), new THREE.Vector2(0.58, 0), new THREE.Vector2(0.58, 0.06), new THREE.Vector2(0, 0.18)]);
-  const kbGeo = new THREE.ExtrudeGeometry(kbShape, { depth: 1.4, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.015, bevelSegments: 2 });
-  kbGeo.translate(0, 0, -0.7); kbGeo.rotateY(-Math.PI / 2);
-  const kb = new THREE.Mesh(kbGeo, CREAM); kb.position.set(0, 0.02, 0.2); kb.castShadow = kb.receiveShadow = true; pc.add(kb);
-  const keys = new THREE.Group(); keys.position.set(0, 0.15, 0.49); keys.rotation.x = -Math.PI / 2 + 0.19; pc.add(keys);
-  const KN = mat('#2a2523', 0.4);
-  for (let i = 0; i < 4; i++) { const k = cyl(0.035, 0.04, 0.04, KN, -0.58 + i * 0.1, 0.12, 0.02, keys, 16); k.rotation.x = Math.PI / 2; }
-  for (let r = 0; r < 3; r++) for (let i = 0; i < 9; i++) box(0.075, 0.065, 0.035, (i + r) % 5 === 0 ? '#c9452f' : (i % 3 ? '#e8e2d4' : '#2a2523'), -0.12 + i * 0.085, 0.13 - r * 0.085, 0.015, keys, 0.012);
-  for (let i = 0; i < 4; i++) box(0.05, 0.05, 0.02, new THREE.MeshBasicMaterial({ color: ['#ff9a4a', '#ffd166', '#9fe8a8', '#ff9a4a'][i], toneMapped: false }), -0.58 + i * 0.1, -0.03, 0.012, keys, 0.008);
-  const crtGlow = new THREE.PointLight('#ff9a4a', 3, 3.5, 1.6); crtGlow.position.set(0, 0.6, 0.8); pc.add(crtGlow);
-  halo('#ff8a3a', 1.5, 0, 0.68, 0.3, pc, 0.3);
+  const pc = new THREE.Group(); pc.position.set(0.15, 2.53, -0.25); pc.scale.setScalar(1.15); desk.add(pc);
+  // desktop case: the monitor sits on it, with a floppy slot, power button and a little activity light
+  box(1.25, 0.28, 0.85, CREAM_DK, 0, 0.14, -0.22, pc, 0.04);
+  box(1.2, 0.006, 0.02, mat('#cfc6b0', 0.6), 0, 0.2, 0.205, pc, 0);
+  box(0.36, 0.035, 0.02, mat('#2a2624', 0.5), 0.3, 0.12, 0.21, pc, 0.01);
+  const pwr = cyl(0.03, 0.03, 0.02, CREAM, -0.48, 0.12, 0.21, pc, 16); pwr.rotation.x = Math.PI / 2;
+  box(0.03, 0.015, 0.01, new THREE.MeshBasicMaterial({ color: '#ff9a4a', toneMapped: false }), -0.38, 0.12, 0.215, pc, 0);
+  // swivel foot and neck
+  cyl(0.26, 0.3, 0.05, CREAM, 0, 0.305, -0.25, pc, 32);
+  box(0.32, 0.08, 0.26, CREAM, 0, 0.36, -0.25, pc, 0.03);
+  // crt: a thick front bezel with the glass set back in a recess, and a tapered tube housing behind it
+  const bezel = rrPath(1.2, 0.95, 0.08); bezel.holes.push(rrPath(1.0, 0.76, 0.05, new THREE.Path()));
+  const bz = new THREE.Mesh(new THREE.ExtrudeGeometry(bezel, { depth: 0.12, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.015, bevelSegments: 3 }), CREAM);
+  bz.position.set(0, 0.84, -0.08); bz.castShadow = bz.receiveShadow = true; pc.add(bz);
+  const lip = rrPath(1.0, 0.76, 0.05); lip.holes.push(rrPath(0.93, 0.68, 0.035, new THREE.Path()));
+  const lp = new THREE.Mesh(new THREE.ExtrudeGeometry(lip, { depth: 0.07, bevelEnabled: false }), mat('#3a3632', 0.6));
+  lp.position.set(0, 0.84, -0.06); pc.add(lp);
+  box(0.95, 0.7, 0.02, '#141110', 0, 0.84, -0.03, pc, 0.02);
+  const crtGeo = new THREE.CylinderGeometry(0.51, 0.79, 0.68, 4, 1).toNonIndexed();
+  crtGeo.rotateY(Math.PI / 4); crtGeo.rotateX(-Math.PI / 2); crtGeo.scale(1, 0.79, 1); crtGeo.computeVertexNormals();
+  const crtBody = new THREE.Mesh(crtGeo, CREAM); crtBody.position.set(0, 0.82, -0.42); crtBody.castShadow = crtBody.receiveShadow = true; pc.add(crtBody);
+  for (let i = 0; i < 6; i++) box(0.5, 0.012, 0.012, mat('#cfc6b0', 0.6), 0, 1.07 - i * 0.02, -0.4 - i * 0.05, pc, 0);
+  const badge = canvasTex(128, 32, (g, w, h) => { g.clearRect(0, 0, w, h); g.fillStyle = '#8a8170'; g.font = '700 20px Georgia, serif'; g.fillText('KH-1', 6, 23); g.font = '400 11px system-ui'; g.fillText('workbench', 62, 22); });
+  const badgeM = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 0.055), new THREE.MeshBasicMaterial({ map: badge, transparent: true })); badgeM.position.set(-0.42, 0.405, 0.06); pc.add(badgeM);
+  box(0.025, 0.025, 0.01, new THREE.MeshBasicMaterial({ color: '#9fe8a8', toneMapped: false }), 0.5, 0.405, 0.058, pc, 0.005);
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(0.92, 0.66), new THREE.MeshBasicMaterial({ map: crtTex, toneMapped: false })); scr.position.set(0, 0.84, -0.015); pc.add(scr);
+  // separate keyboard with rows of keys, and a mouse on its cable
+  const kbd = new THREE.Group(); kbd.position.set(-0.05, 0, 0.55); kbd.rotation.x = 0.05; pc.add(kbd);
+  box(1.15, 0.05, 0.38, CREAM, 0, 0.025, 0, kbd, 0.02);
+  const KEY = mat('#f1ebdf', 0.5), KEY2 = mat('#cdc4b2', 0.5);
+  for (let r = 0; r < 5; r++) for (let c = 0; c < 15; c++) box(0.058, 0.025, 0.055, c > 12 || (r === 0 && c < 2) ? KEY2 : KEY, -0.5 + c * 0.068, 0.062, -0.13 + r * 0.065, kbd, 0.008);
+  box(0.4, 0.025, 0.055, KEY, -0.07, 0.062, 0.195, kbd, 0.008);
+  const mouse = ball(0.06, CREAM, 0.72, 0.03, 0.55, pc, 0.75, 0.45, 1.15);
+  tube(new THREE.CatmullRomCurve3([v(0.72, 0.03, 0.48), v(0.75, 0.02, 0.3), v(0.66, 0.02, 0.2), v(0.55, 0.1, 0.19)]), 0.008, mat('#d9d1c0', 0.6), pc);
+  const crtGlow = new THREE.PointLight('#ff9a4a', 3, 3.5, 1.6); crtGlow.position.set(0, 0.8, 0.8); pc.add(crtGlow);
+  halo('#ff8a3a', 1.4, 0, 0.84, 0.15, pc, 0.25);
   // a modern setup that can stand in for the retro terminal: thin monitor on a stand, flat keyboard, mouse
   const pcModern = new THREE.Group(); pcModern.position.set(0.15, 2.53, -0.35); desk.add(pcModern);
   const MW = mat('#f4eef0', 0.35), MB = mat('#e9c3d0', 0.4);
@@ -2172,7 +2194,7 @@ const sun = new THREE.DirectionalLight('#ffd3a3', 1.55);
 sun.position.set(8, 7.5, 5); sun.castShadow = true;
 sun.shadow.mapSize.set(3072, 3072);
 Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 1, far: 50 });
-sun.shadow.bias = -0.0003; sun.shadow.normalBias = 0.03;
+sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.02; sun.shadow.radius = 7; sun.shadow.blurSamples = 16;
 scene.add(sun); scene.add(sun.target);
 const fill = new THREE.DirectionalLight('#f3c3d6', 0.22); fill.position.set(-6, 4, -3); scene.add(fill);
 
@@ -2360,6 +2382,7 @@ addEventListener('pointerup', e => {
   if (!down) return;
   const moved = down.moved; down = null;
   if (moved || e.target !== canvas) return;
+  if (current === 'computer') return close();
   const hit = pick(e);
   if (hit?.startsWith('door:')) {
     const to = hit.slice(5);
@@ -2387,7 +2410,7 @@ function frame() {
   if (Math.abs(cam.offX) + Math.abs(cam.offY) > 0.5) camera.setViewOffset(W, H, cam.offX, cam.offY, W, H);
   else camera.clearViewOffset();
   for (const [id, p] of Object.entries(PROJECTS)) {
-    const target = hovered === id && current !== id ? 1.04 : 1;
+    const target = hovered === id && current !== id && !p.computer ? 1.04 : 1;
     p.scale += (target - p.scale) * (reduced ? 1 : 1 - Math.exp(-dt * 12));
     p.group.scale.setScalar(p.scale * p.baseScale);
   }
