@@ -1578,56 +1578,71 @@ function buildWorkshop() {
   [rows[0], rows[1]].forEach(r => { const l = new THREE.PointLight('#ffd2a8', 2.5, 3.2, 1.6); l.position.set(-3.6, YC + r + 0.4, ZC); ROOT.add(l); });
   const nicheFloor = r => YC + r - NH / 2 + 0.02;
 
-  // the rc car: a two-deck black chassis on brass standoffs, red-rimmed treaded tyres, and the black pcb on top
-  const rcG = new THREE.Group(); rcG.position.set(-4.4, nicheFloor(rows[1]), ZC); ROOT.add(rcG);
-  // sized and turned side-on so it sits fully inside the niche
-  const car = new THREE.Group(); car.scale.setScalar(0.72); car.rotation.y = -0.1; rcG.add(car);
-  const PLATE = mat('#151517', 0.35), BRASS = mat('#c9a14a', 0.3, 0.85), TIRE = mat('#1b1b1d', 0.95), RIM = mat('#e3262a', 0.4);
-  const deck = (w, l, nose) => {
+  // projects float in the middle of their niches, bobbing and swaying a little
+  const floatIn = (g, r, c, ph) => {
+    const y0 = YC + r; g.position.set(-4.4, y0, ZC - c); ROOT.add(g);
+    TICKS.push({ room: 'workshop', fn: t => { g.position.y = y0 + Math.sin(t * 1.1 + ph) * 0.04; g.rotation.y = Math.sin(t * 0.5 + ph) * 0.12; } });
+    return g;
+  };
+
+  // the rc car: an ackermann chassis, two black plates on brass standoffs, treaded tyres on tan spoked rims,
+  // and the black controller pcb on top (simplified: headers, a heatsink, a couple of chips, a terminal block)
+  const rcG = floatIn(new THREE.Group(), rows[1], 0, 0);
+  const car = new THREE.Group(); car.scale.setScalar(0.8); car.position.y = -0.26; rcG.add(car);
+  const PLATE = mat('#1b1b1e', 0.35), BRASS = mat('#c9a14a', 0.3, 0.85), TIRE = mat('#1b1b1d', 0.95), RIM = mat('#cdb98a', 0.35, 0.5);
+  const deck = (w, l, nose, holes) => {
     const s = new THREE.Shape([new THREE.Vector2(-w / 2, -l / 2), new THREE.Vector2(w / 2, -l / 2), new THREE.Vector2(w / 2, l / 2 - nose), new THREE.Vector2(w / 2 - nose, l / 2), new THREE.Vector2(-w / 2 + nose, l / 2), new THREE.Vector2(-w / 2, l / 2 - nose)]);
-    for (let i = 0; i < 4; i++) s.holes.push(rrPath(0.24, 0.035, 0.017, new THREE.Path(), 0, -0.3 + i * 0.13));
-    const g = new THREE.ExtrudeGeometry(s, { depth: 0.02, bevelEnabled: false }); g.rotateX(-Math.PI / 2);
+    for (let i = 0; i < holes; i++) s.holes.push(rrPath(0.2, 0.03, 0.015, new THREE.Path(), 0, -0.32 + i * 0.12));
+    const g = new THREE.ExtrudeGeometry(s, { depth: 0.018, bevelEnabled: false }); g.rotateX(-Math.PI / 2);
     const m = new THREE.Mesh(g, PLATE); m.castShadow = m.receiveShadow = true; return m;
   };
-  const lower = deck(0.4, 1.05, 0.12); lower.position.y = 0.13; car.add(lower);
-  const upperDeck = deck(0.5, 0.95, 0.16); upperDeck.position.y = 0.33; car.add(upperDeck);
-  [[-0.16, -0.38], [0.16, -0.38], [-0.16, 0.36], [0.16, 0.36]].forEach(([x, z]) => cyl(0.012, 0.012, 0.2, BRASS, x, 0.24, z, car, 8));
+  const lowerDeck = deck(0.34, 1.0, 0.1, 5); lowerDeck.position.y = 0.12; car.add(lowerDeck);
+  const upperDeck = deck(0.5, 0.86, 0.14, 0); upperDeck.position.y = 0.3; car.add(upperDeck);
+  [[-0.14, -0.36], [0.14, -0.36], [-0.14, 0.34], [0.14, 0.34]].forEach(([x, z]) => cyl(0.01, 0.01, 0.18, BRASS, x, 0.21, z, car, 8));
   [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
-    const w = new THREE.Group(); w.position.set(sx * 0.3, 0.15, sz * 0.36); car.add(w);
+    const w = new THREE.Group(); w.position.set(sx * 0.29, 0.15, sz * 0.38); car.add(w);
     const t = cyl(0.15, 0.15, 0.12, TIRE, 0, 0, 0, w, 28); t.rotation.z = Math.PI / 2;
-    for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2, b = box(0.125, 0.025, 0.035, TIRE, 0, Math.sin(a) * 0.15, Math.cos(a) * 0.15, w, 0.005); b.rotation.x = -a; }
-    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.012, 8, 24), RIM); rim.rotation.y = Math.PI / 2; rim.position.x = sx * 0.062; w.add(rim);
-    const hub = cyl(0.085, 0.085, 0.02, PLATE, sx * 0.055, 0, 0, w, 20); hub.rotation.z = Math.PI / 2;
-    const motor = cyl(0.04, 0.04, 0.16, mat('#8f9196', 0.3, 0.8), -sx * 0.12, 0, 0, w, 14); motor.rotation.z = Math.PI / 2;
+    for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2, b = box(0.115, 0.024, 0.032, TIRE, 0, Math.sin(a) * 0.15, Math.cos(a) * 0.15, w, 0.005); b.rotation.x = -a; }
+    const rim = cyl(0.095, 0.095, 0.125, RIM, 0, 0, 0, w, 24); rim.rotation.z = Math.PI / 2;
+    for (let i = 0; i < 8; i++) { const sp = box(0.01, 0.012, 0.085, mat('#3a3633', 0.5), sx * 0.064, 0, 0, w, 0.003); sp.rotation.x = i * Math.PI / 8; }
+    const hub = cyl(0.025, 0.025, 0.13, mat('#3a3633', 0.4), 0, 0, 0, w, 12); hub.rotation.z = Math.PI / 2;
+    if (sz < 0) { const motor = cyl(0.035, 0.035, 0.14, mat('#8f9196', 0.3, 0.8), -sx * 0.12, 0, 0, w, 14); motor.rotation.z = Math.PI / 2; }
   });
-  box(0.12, 0.08, 0.16, DARK, 0, 0.19, 0.36, car, 0.01);
-  // the black pcb with white connectors and a main chip, held on with silver screws
-  const pcbB = new THREE.Group(); pcbB.position.set(0, 0.36, -0.05); car.add(pcbB);
-  box(0.3, 0.018, 0.38, mat('#0e0e10', 0.35), 0, 0.012, 0, pcbB, 0.005);
-  box(0.09, 0.014, 0.09, DARK, 0, 0.027, 0.02, pcbB, 0.003);
-  [[-0.11, -0.12], [0.11, -0.12], [-0.11, 0.1], [0.11, 0.1]].forEach(([x, z]) => box(0.035, 0.03, 0.08, mat('#f2f0ea', 0.5), x, 0.035, z, pcbB, 0.004));
-  [[-0.13, -0.17], [0.13, -0.17], [-0.13, 0.17], [0.13, 0.17]].forEach(([x, z]) => cyl(0.014, 0.014, 0.012, CHROME, x, 0.026, z, pcbB, 10));
-  for (let i = 0; i < 8; i++) box(0.012, 0.008, 0.012, mat('#e3c06a', 0.3, 0.8), -0.05 + i * 0.014, 0.024, 0.15, pcbB, 0);
-  ball(0.012, glowM('#7dff9a'), 0.07, 0.03, -0.02, pcbB);
-  tube(new THREE.CatmullRomCurve3([v(0.11, 0.39, -0.12), v(0.2, 0.3, -0.22), v(0.28, 0.17, -0.36)]), 0.006, mat('#e8423a', 0.5), car);
-  projects['rc-car'] = { group: rcG, object: 'RC car in the project wall', focus: [-4.2, nicheFloor(rows[1]) + 0.4, ZC], view: [3.0, 0.3, 0.2], normal: [1, 0, 0] };
+  box(0.1, 0.07, 0.16, mat('#2a2826', 0.5), 0, 0.08, 0.36, car, 0.01);
+  const pcbB = new THREE.Group(); pcbB.position.set(0, 0.33, -0.03); car.add(pcbB);
+  box(0.46, 0.016, 0.62, mat('#111114', 0.35), 0, 0.01, 0, pcbB, 0.006);
+  box(0.03, 0.03, 0.42, mat('#1e1e22', 0.5), -0.19, 0.03, -0.02, pcbB, 0.004);
+  for (let i = 0; i < 14; i++) box(0.008, 0.03, 0.008, mat('#e3c06a', 0.3, 0.8), -0.19, 0.05, -0.21 + i * 0.03, pcbB, 0);
+  const HS = mat('#16161a', 0.4, 0.4);
+  box(0.14, 0.02, 0.12, HS, 0.12, 0.028, -0.2, pcbB, 0.004);
+  for (let i = 0; i < 6; i++) box(0.012, 0.1, 0.12, HS, 0.07 + i * 0.02, 0.08, -0.2, pcbB, 0.002);
+  box(0.06, 0.012, 0.06, mat('#2a2a2e', 0.5), -0.04, 0.024, 0.02, pcbB, 0.003);
+  box(0.04, 0.01, 0.04, mat('#2a2a2e', 0.5), 0.08, 0.022, 0.08, pcbB, 0.003);
+  box(0.06, 0.04, 0.14, mat('#2d6fd0', 0.45), 0.16, 0.035, 0.12, pcbB, 0.005);
+  box(0.1, 0.03, 0.04, mat('#f2f0ea', 0.5), -0.05, 0.03, 0.27, pcbB, 0.004);
+  ball(0.008, glowM('#7dff9a'), 0.0, 0.026, -0.08, pcbB);
+  projects['rc-car'] = { group: rcG, object: 'RC car in the project wall', focus: [-4.2, YC + rows[1], ZC], view: [3.0, 0.3, 0.2], normal: [1, 0, 0] };
 
-  // other niches: a pink pcb, a ring mouse on a stand, a small robot arm, parts drawers, binders
-  const pcb = new THREE.Group(); pcb.position.set(-4.55, nicheFloor(rows[1]) + 0.65, ZC + 1.6); pcb.rotation.z = -0.12; ROOT.add(pcb);
-  box(0.03, 0.8, 1.0, mat('#e86a9a', 0.5), 0, 0, 0, pcb, 0.01);
-  [[0.1, -0.25, 0.2], [-0.15, 0.1, 0.15], [0.2, 0.28, 0.1]].forEach(([y, z, s]) => box(0.03, s, s, DARK, 0.03, y, z, pcb, 0.005));
-  for (let i = 0; i < 12; i++) box(0.02, 0.03, 0.05, mat('#e3c06a', 0.3, 0.8), 0.02, -0.32, -0.42 + i * 0.075, pcb, 0);
-  const rm = new THREE.Group(); rm.position.set(-4.4, nicheFloor(rows[1]), ZC - 1.6); ROOT.add(rm);
-  cyl(0.14, 0.2, 0.35, CR, 0, 0.175, 0, rm, 24); cyl(0.09, 0.09, 0.08, PINK, 0, 0.39, 0, rm, 24);
-  const ringM = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.04, 14, 32), mat('#d9d9de', 0.25, 0.8)); ringM.position.y = 0.52; ringM.rotation.y = Math.PI / 2; rm.add(ringM);
-  box(0.08, 0.05, 0.12, mat('#1f7a45', 0.5), 0, 0.66, 0, rm, 0.01);
-  const arm = new THREE.Group(); arm.position.set(-4.4, nicheFloor(rows[0]), ZC); arm.rotation.y = -0.6; ROOT.add(arm);
-  cyl(0.2, 0.23, 0.1, CR, 0, 0.05, 0, arm, 28); cyl(0.11, 0.11, 0.16, ORANGE, 0, 0.18, 0, arm, 20);
-  const l1 = box(0.09, 0.55, 0.09, CR, 0, 0.5, 0.08, arm, 0.03); l1.rotation.x = 0.3;
-  const l2 = box(0.08, 0.45, 0.08, CR, 0, 0.8, 0.35, arm, 0.03); l2.rotation.x = 1.6;
-  ball(0.065, PINK_DK, 0, 0.76, 0.16, arm); box(0.06, 0.1, 0.12, DARK, 0, 0.75, 0.58, arm, 0.02);
+  // other projects, also floating: a pink pcb, the ring mouse, a small robot arm
+  const pcb = floatIn(new THREE.Group(), rows[1], 1.6, 1.3); 
+  const pcbInner = new THREE.Group(); pcbInner.rotation.z = -0.12; pcb.add(pcbInner);
+  box(0.03, 0.8, 1.0, mat('#e86a9a', 0.5), 0, 0, 0, pcbInner, 0.01);
+  [[0.1, -0.25, 0.2], [-0.15, 0.1, 0.15], [0.2, 0.28, 0.1]].forEach(([y, z, s]) => box(0.03, s, s, DARK, 0.03, y, z, pcbInner, 0.005));
+  for (let i = 0; i < 12; i++) box(0.02, 0.03, 0.05, mat('#e3c06a', 0.3, 0.8), 0.02, -0.32, -0.42 + i * 0.075, pcbInner, 0);
+  const rm = floatIn(new THREE.Group(), rows[1], -1.6, 2.4);
+  const ringM = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.055, 16, 40), mat('#d9d9de', 0.25, 0.8)); ringM.rotation.y = Math.PI / 2; rm.add(ringM);
+  box(0.1, 0.06, 0.16, mat('#1f7a45', 0.5), 0, 0.2, 0, rm, 0.01);
+  box(0.03, 0.02, 0.06, PINK_DK, 0.03, 0.24, 0, rm, 0.005);
+  const arm = floatIn(new THREE.Group(), rows[0], 0, 3.7);
+  const armIn = new THREE.Group(); armIn.position.y = -0.45; armIn.rotation.y = -0.6; arm.add(armIn);
+  cyl(0.2, 0.23, 0.1, CR, 0, 0.05, 0, armIn, 28); cyl(0.11, 0.11, 0.16, ORANGE, 0, 0.18, 0, armIn, 20);
+  const l1 = box(0.09, 0.55, 0.09, CR, 0, 0.5, 0.08, armIn, 0.03); l1.rotation.x = 0.3;
+  const l2 = box(0.08, 0.45, 0.08, CR, 0, 0.8, 0.35, armIn, 0.03); l2.rotation.x = 1.6;
+  ball(0.065, PINK_DK, 0, 0.76, 0.16, armIn); box(0.06, 0.1, 0.12, DARK, 0, 0.75, 0.58, armIn, 0.02);
+  // storage niches stay as they are: parts drawers and binders
   for (let c = 0; c < 3; c++) for (let r = 0; r < 3; r++) box(0.5, 0.3, 0.36, c % 2 ? CR : mat('#f7d0dc', 0.4), -4.45, nicheFloor(rows[0]) + 0.17 + r * 0.33, ZC + 1.6 - 0.4 + c * 0.4, ROOT, 0.04);
   ['#f4a9c0', '#efe7d6', '#e8702a', '#f4a9c0', '#efe7d6', '#c8b6f5'].forEach((c, i) => box(0.55, 1.0, 0.12, mat(c, 0.6), -4.45, nicheFloor(rows[0]) + 0.5, ZC - 1.6 - 0.4 + i * 0.16, ROOT, 0.02));
+
 
   // centre workbench: a rounded cream slab on two pedestals, glowing underneath
   const wb = new THREE.Group(); wb.position.set(0.4, 0, 0.6); ROOT.add(wb);
@@ -1682,6 +1697,44 @@ function buildWorkshop() {
   });
   plane(1.1, 0.66, new THREE.MeshBasicMaterial({ map: blue, toneMapped: false }), 0, 1.05, -0.055, 0, cc);
   box(1.0, 0.07, 0.02, DARK, 0, 0.62, -0.075, cc, 0.01);
+  // seatback monitor testbench from the summer internship: two rounded triangle end frames, din rails across the
+  // sloped front with relays, a plc and the interface pcb, and a tablet-style seatback display on the back
+  const tb = new THREE.Group(); tb.position.set(0.5, 2.31, 0.05); wb.add(tb);
+  const FRAMEM = mat('#8d90a8', 0.45), RAIL = mat('#b9bcc4', 0.3, 0.8), SLOT = mat('#4a4c55', 0.5);
+  const tri = new THREE.Shape([new THREE.Vector2(0.34, 0), new THREE.Vector2(-0.34, 0), new THREE.Vector2(0.34, 0.58)]);
+  tri.holes.push(new THREE.Path([new THREE.Vector2(0.26, 0.07), new THREE.Vector2(-0.16, 0.07), new THREE.Vector2(0.26, 0.42)]));
+  [-0.56, 0.56].forEach(x => {
+    const g = new THREE.ExtrudeGeometry(tri, { depth: 0.05, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.012, bevelSegments: 3 });
+    g.translate(0, 0, -0.025); g.rotateY(Math.PI / 2);
+    const f = new THREE.Mesh(g, FRAMEM); f.position.x = x; f.castShadow = f.receiveShadow = true; tb.add(f);
+  });
+  // the sloped tbFace runs from the back top corner down to the front foot; rails and modules sit on it
+  const slopeA = Math.atan2(0.58, 0.68), tbFace = new THREE.Group();
+  tbFace.position.set(0, 0.29, 0.0); tbFace.rotation.x = slopeA; tb.add(tbFace);
+  [-0.22, 0, 0.22].forEach(z => {
+    box(1.16, 0.012, 0.07, RAIL, 0, 0.035, z, tbFace, 0.003);
+    for (let i = 0; i < 9; i++) box(0.05, 0.004, 0.016, SLOT, -0.48 + i * 0.12, 0.042, z, tbFace, 0.002);
+  });
+  box(0.42, 0.012, 0.34, mat('#1f3a2c', 0.45), -0.26, 0.1, -0.05, tbFace, 0.004);
+  [[-0.38, -0.12], [-0.2, 0.05], [-0.14, -0.15]].forEach(([x, z]) => box(0.07, 0.012, 0.05, mat('#2a2a2e', 0.5), x, 0.112, z, tbFace, 0.003));
+  [0.1, 0.19].forEach(x => { box(0.08, 0.26, 0.32, mat('#232326', 0.5), x, 0.17, 0.05, tbFace, 0.01); box(0.08, 0.04, 0.05, mat('#3a3a3e', 0.5), x, 0.31, 0.16, tbFace, 0.005); });
+  box(0.13, 0.27, 0.34, mat('#a9abaf', 0.5), 0.33, 0.175, 0.04, tbFace, 0.012);
+  box(0.13, 0.08, 0.34, mat('#c8681e', 0.45), 0.33, 0.31, 0.04, tbFace, 0.012);
+  box(0.09, 0.03, 0.14, mat('#7d8088', 0.4), 0.33, 0.36, 0.02, tbFace, 0.005);
+  // the seatback display on the back of the frame, facing the other way, showing a flight map
+  const ipad = new THREE.Group(); ipad.position.set(0, 0.32, -0.36); ipad.rotation.y = Math.PI; tb.add(ipad);
+  box(0.62, 0.42, 0.025, mat('#1c1c20', 0.3), 0, 0, 0, ipad, 0.03);
+  const tbMap = canvasTex(256, 172, (g, w, h) => {
+    const bg = g.createLinearGradient(0, 0, w, h); bg.addColorStop(0, '#0f2f4f'); bg.addColorStop(1, '#0a1c33'); g.fillStyle = bg; g.fillRect(0, 0, w, h);
+    g.fillStyle = 'rgba(120,180,220,.25)'; g.beginPath(); g.ellipse(80, 90, 60, 40, 0.3, 0, 7); g.fill(); g.beginPath(); g.ellipse(190, 70, 50, 34, -0.2, 0, 7); g.fill();
+    g.strokeStyle = '#ff9cc0'; g.lineWidth = 3; g.setLineDash([6, 5]); g.beginPath(); g.moveTo(50, 120); g.quadraticCurveTo(130, 30, 210, 80); g.stroke(); g.setLineDash([]);
+    g.fillStyle = '#ffffff'; g.beginPath(); g.arc(140, 62, 5, 0, 7); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.85)'; g.font = '600 13px system-ui, sans-serif'; g.fillText('PIT  →  SFO', 12, 22); g.fillText('3h 42m', 200, 160);
+  });
+  plane(0.56, 0.36, new THREE.MeshBasicMaterial({ map: tbMap, toneMapped: false }), 0, 0, 0.014, 0, ipad);
+  box(0.12, 0.06, 0.06, mat('#3a3a3e', 0.4), 0, 0.0, -0.04, ipad, 0.01);
+  projects['testbench'] = { group: tb, object: 'Seatback display testbench', focus: [0.9, 2.75, 0.65], view: [0.3, 0.35, 2.6], normal: [0, 0, 1] };
+
   const bl = new THREE.PointLight('#fff2e6', 7, 8, 1.4); bl.position.set(0, 5.4, 0); wb.add(bl);
 
   // pedestal stools with pink seats: one wide chrome base, a straight column, a footrest ring
@@ -1998,7 +2051,7 @@ ROOT = scene;
 let room = 'office';
 ROOMS.office.group.visible = true;
 applyLight();
-const NAMES = { 'home-hub': 'Home Hub', 'rank-everything': 'Rank Everything', 'pingu': 'Pingu', 'outfit-app': 'Outfit App', school: 'School', work: 'Work', 'rc-car': 'RC Car' };
+const NAMES = { 'home-hub': 'Home Hub', 'rank-everything': 'Rank Everything', 'pingu': 'Pingu', 'outfit-app': 'Outfit App', school: 'School', work: 'Work', 'rc-car': 'RC Car', testbench: 'Seatback Testbench' };
 
 // picking: projects and doors in the room that's showing
 Object.entries(PROJECTS).forEach(([id, p]) => { p.group.userData.pid = id; p.scale = 1; p.baseScale = p.group.scale.x; });
