@@ -1223,7 +1223,7 @@ function buildOffice() {
   const display = new THREE.Mesh(new THREE.CylinderGeometry(R - 0.004, R - 0.004, 0.84, 48, 1, true, Math.PI - (ARC - 0.04) / 2, ARC - 0.04), new THREE.MeshBasicMaterial({ map: siteFlip, toneMapped: false, side: THREE.BackSide }));
   display.position.set(0, panelY, frontZ + R); pcModern.add(display);
   box(0.5, 0.05, 0.12, mat('#f2f0f2', 0.4), 0, panelY - 0.4, frontZ - 0.12, pcModern, 0.03);
-  box(0.03, 0.006, 0.6, new THREE.MeshBasicMaterial({ color: '#7fd3ff', toneMapped: false }), 0, panelY - 0.47, frontZ - 0.05, pcModern, 0);
+  box(0.5, 0.008, 0.02, new THREE.MeshBasicMaterial({ color: '#7fd3ff', toneMapped: false }), 0, panelY - 0.465, frontZ - 0.01, pcModern, 0);
   const monNeck = box(0.14, 0.62, 0.05, mat('#f2f0f2', 0.4), 0, 0.42, -0.24, pcModern, 0.02); monNeck.rotation.x = 0.12;
   [-1, 1].forEach(sx => { const leg = box(0.08, 0.025, 0.5, mat('#26262b', 0.4), sx * 0.15, 0.014, -0.08, pcModern, 0.012); leg.rotation.y = sx * 0.55; });
   box(0.16, 0.03, 0.16, mat('#26262b', 0.4), 0, 0.015, -0.28, pcModern, 0.02);
