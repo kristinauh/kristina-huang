@@ -1758,13 +1758,13 @@ function buildOffice() {
       return new THREE.MeshStandardMaterial({ color, roughness: 0.06, metalness: 0.15, normalMap: nm, normalScale: new THREE.Vector2(0.7, 0.7), envMapIntensity: 2.6, transparent: true, opacity, depthWrite: false }); };
     const plane = (w, h, m, x, y, z, rx, parent) => { const p = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m); p.position.set(x, y, z); p.rotation.x = rx; parent.add(p); return p; };
     // the channel: stone bed, two thin lips, water across its whole length, and the island down the middle
-    const CX = 0.2, CW = 0.46, Z0 = -0.95, Z1 = 1.82;
+    const CX = 0.2, CW = 0.5, Z0 = -0.95, Z1 = 1.82;
     box(CW + 0.06, 0.008, Z1 - Z0, STONE, CX, 2.531, (Z0 + Z1) / 2, tea, 0);
     [-1, 1].forEach(sx => box(0.03, 0.024, Z1 - Z0, STONE, CX + sx * (CW / 2 + 0.015), 2.542, (Z0 + Z1) / 2, tea, 0.006));
     box(CW + 0.06, 0.024, 0.03, STONE, CX, 2.542, Z0 - 0.015, tea, 0.006);
-    const flowN = waterNormal(1), flowMat = waterMat(flowN, [1, 6], '#8fb0bc', 0.82);
+    const flowN = waterNormal(1), flowMat = waterMat(flowN, [1, 6], '#45494b', 0.72);
     plane(CW, Z1 - Z0, flowMat, CX, 2.538, (Z0 + Z1) / 2, -Math.PI / 2, tea);
-    const island = rrPath(0.2, 2.2, 0.1, new THREE.Shape()), ig = new THREE.ExtrudeGeometry(island, { depth: 0.03, bevelEnabled: false }); ig.rotateX(-Math.PI / 2);
+    const island = rrPath(0.4, 2.2, 0.12, new THREE.Shape()), ig = new THREE.ExtrudeGeometry(island, { depth: 0.03, bevelEnabled: false }); ig.rotateX(-Math.PI / 2);
     const isl = new THREE.Mesh(ig, STONE); isl.position.set(CX, 2.535, 0.35); isl.castShadow = isl.receiveShadow = true; tea.add(isl);
     const TOP = 2.565;
     [-0.5, -0.32, -0.14].forEach(z => lathe([[0, 0], [0.022, 0], [0.036, 0.045], [0.032, 0.045], [0, 0.008]], CUP, tea, THREE.DoubleSide).position.set(CX, TOP, z));
@@ -1778,7 +1778,7 @@ function buildOffice() {
     tube(new THREE.CatmullRomCurve3([v(0.09, 0.06, 0), v(0.16, 0.09, 0), v(0.2, 0.19, 0), v(0.24, 0.24, 0)]), 0.01, IRON, kettle);
     tube(new THREE.CatmullRomCurve3([v(-0.08, 0.22, 0), v(-0.12, 0.3, 0), v(-0.02, 0.33, 0), v(0.04, 0.24, 0)]), 0.009, IRON, kettle);
     // the pour off the slab end: a narrow sheet that thins as it falls
-    const fallN = waterNormal(2), fallMat = waterMat(fallN, [1, 2], '#c9dde4', 0.6); fallMat.side = THREE.DoubleSide;
+    const fallN = waterNormal(2), fallMat = waterMat(fallN, [1, 2], '#b9c0c2', 0.55); fallMat.side = THREE.DoubleSide;
     const fg = new THREE.PlaneGeometry(CW - 0.06, 0.4, 1, 6), fp = fg.attributes.position;
     for (let i = 0; i < fp.count; i++) { const y = fp.getY(i), k = (0.2 - y) / 0.4; fp.setX(i, fp.getX(i) * (1 - 0.35 * k)); fp.setZ(i, 0.05 * Math.sin(k * 1.4)); }
     fg.computeVertexNormals();
@@ -1788,12 +1788,14 @@ function buildOffice() {
       g.strokeStyle = 'rgba(235,235,235,.55)'; for (let i = 0; i < 7; i++) { g.lineWidth = 0.6 + rand() * 1.6; g.beginPath(); let x = rand() * w, y = 0; g.moveTo(x, y);
         while (y < h) { x += (rand() - 0.5) * 40; y += 12 + rand() * 20; g.lineTo(x, y); } g.stroke(); } });
     const MARBLE = texMat(marble, 0.25), BZ = 1.75, BD = 1.4, BW = 1.6, BT = 2.22;
-    box(BW - 0.1, BT - 0.36, BD - 0.1, WALNUT, 0, (BT - 0.26) / 2 + 0.05, BZ, tea, 0.03);
-    box(BW - 0.02, 0.1, BD - 0.02, WALNUT_DK, 0, 0.05, BZ, tea, 0.02);
-    [BZ - BD / 2 + 0.06, BZ + BD / 2 - 0.06].forEach(z => box(BW, 0.26, 0.12, MARBLE, 0, BT - 0.13, z, tea, 0.015));
-    [-1, 1].forEach(sx => box(0.12, 0.26, BD - 0.24, MARBLE, sx * (BW / 2 - 0.06), BT - 0.13, BZ, tea, 0.015));
-    box(BW - 0.2, 0.04, BD - 0.2, MARBLE, 0, BT - 0.25, BZ, tea, 0);
-    const poolN = waterNormal(1), poolMat = waterMat(poolN, [2, 2], '#6f8e99', 0.88);
+    // a thick block of marble with the pool cut into its top, sitting on a smaller, set-back walnut base
+    const MB = 0.55;
+    box(BW, MB - 0.2, BD, MARBLE, 0, BT - MB + (MB - 0.2) / 2, BZ, tea, 0.02);
+    [BZ - BD / 2 + 0.06, BZ + BD / 2 - 0.06].forEach(z => box(BW, 0.2, 0.12, MARBLE, 0, BT - 0.1, z, tea, 0.012));
+    [-1, 1].forEach(sx => box(0.12, 0.2, BD - 0.24, MARBLE, sx * (BW / 2 - 0.06), BT - 0.1, BZ, tea, 0.012));
+    box(BW - 0.45, BT - MB - 0.1, BD - 0.45, WALNUT, 0, (BT - MB - 0.1) / 2 + 0.1, BZ, tea, 0.02);
+    box(BW - 0.55, 0.1, BD - 0.55, WALNUT_DK, 0, 0.05, BZ, tea, 0.01);
+    const poolN = waterNormal(1), poolMat = waterMat(poolN, [2, 2], '#3d4143', 0.8);
     plane(BW - 0.24, BD - 0.24, poolMat, 0, BT - 0.06, BZ, -Math.PI / 2, tea);
     // rings only from where the stream lands, fading as they spread
     const HIT = v(CX, BT - 0.055, Z1 + 0.04);
