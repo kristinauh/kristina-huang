@@ -988,7 +988,7 @@ function halo(color, size, x, y, z, parent = ROOT, opacity = 0.55) {
 
 // each room builds into its own group; the door swaps which one is showing
 const ROOMS = {
-  office: { name: 'Office', build: buildOffice, center: v(-1.4, 2.6, -0.3), radius: 21, light: { sun: 0.1, hemi: 0.035, env: 0.18, sunColor: '#ffb070', exposure: 1.0, bg: ['#4a2f36', '#2e1d24', '#1a1015'], shadow: '#000000' } },
+  office: { name: 'Office', build: buildOffice, center: v(-1.4, 2.6, -0.3), radius: 21, light: { sun: 0.22, hemi: 0.07, env: 0.42, sunColor: '#ffb070', exposure: 0.95, bg: ['#f7e3e9', '#e9c3cf', '#cf9aab'], shadow: '#7a3352' } },
   closet: { name: 'Closet', build: buildCloset, center: v(-0.2, 2.6, -0.5), radius: 17 },
   lab: { name: 'Control Room', build: buildLab, center: v(0.0, 3.2, -0.6), radius: 21, light: { sun: 0.65, hemi: 0.15, exposure: 0.88, bg: ['#fafafa', '#e6e6e9', '#c5c5cb'], shadow: '#2e2e36' } },
   workshop: { name: 'Workshop', build: buildWorkshop, center: v(0.0, 2.8, -0.3), radius: 19, light: { sun: 0.7, hemi: 0.2, exposure: 0.9, bg: ['#fdfbf8', '#ece7e0', '#cdc5bb'], shadow: '#4a3a30' } },
@@ -2869,7 +2869,7 @@ function applyLight() {
   scene.traverse(o => [].concat(o.material || []).forEach(m => { if (m.envMapIntensity === undefined) return; m.userData.envI ??= m.envMapIntensity; m.envMapIntensity = m.userData.envI * envK; }));
   // keep the sun and its shadow box centred on whichever room is showing
   const c = ROOMS[room].center; sun.target.position.set(c.x, 0, c.z); sun.position.set(c.x + 8, 7.5, c.z + 5); sun.target.updateMatrixWorld();
-  ground.material.color.set(l.shadow || '#7a3352'); ground.material.opacity = l.env !== undefined ? 0.35 : 0.18;
+  ground.material.color.set(l.shadow || '#7a3352'); ground.material.opacity = l.env !== undefined ? 0.25 : 0.18;
   // the backdrop is a soft spotlight centred on the room, as if it sits under a single light
   const [c0, c1, c2] = l.bg || ['#fffafc', '#fceef2', '#f7d7e1'];
   document.body.style.background = `radial-gradient(42% 48% at 50% 54%, ${c0} 0%, ${c1} 55%, ${c2} 100%)`;
