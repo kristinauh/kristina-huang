@@ -1082,13 +1082,14 @@ function buildOffice() {
   // and a turntable on top whose tonearm swings over when a record is put on
   const rc = new THREE.Group(); rc.position.set(4.7, 0, 0.3); rc.rotation.y = -Math.PI / 2; ROOT.add(rc);
   const INNER = mat('#3a2418', 0.8);
-  box(2.3, 0.08, 1.05, '#2a2022', 0, 0.06, -0.02, rc, 0.02);
-  box(2.4, 2.0, 0.04, WALNUT, 0, 1.1, -0.555, rc, 0.01);
-  box(2.3, 1.9, 0.01, INNER, 0, 1.1, -0.53, rc, 0);
-  [-1.175, 1.175].forEach(x => box(0.05, 2.0, 1.15, WALNUT, x, 1.1, 0, rc, 0.015));
-  box(2.4, 0.05, 1.15, WALNUT, 0, 2.075, 0, rc, 0.015);
-  box(2.4, 0.06, 1.15, WALNUT, 0, 0.13, 0, rc, 0.015);
-  box(2.3, 0.04, 1.08, WALNUT, 0, 1.1, 0, rc, 0.01);
+  // wide enough for the turntable plus the lamp and the record stand either side of it
+  box(3.3, 0.08, 1.05, '#2a2022', 0, 0.06, -0.02, rc, 0.02);
+  box(3.4, 2.0, 0.04, WALNUT, 0, 1.1, -0.555, rc, 0.01);
+  box(3.3, 1.9, 0.01, INNER, 0, 1.1, -0.53, rc, 0);
+  [-1.675, 1.675].forEach(x => box(0.05, 2.0, 1.15, WALNUT, x, 1.1, 0, rc, 0.015));
+  box(3.4, 0.05, 1.15, WALNUT, 0, 2.075, 0, rc, 0.015);
+  box(3.4, 0.06, 1.15, WALNUT, 0, 0.13, 0, rc, 0.015);
+  box(3.3, 0.04, 1.08, WALNUT, 0, 1.1, 0, rc, 0.01);
   box(0.04, 1.9, 1.08, WALNUT, 0, 1.1, 0, rc, 0.01);
   // records: sleeves standing spine-out in all four cubbies, each one a different album
   // one record per favourite / genre. each is an original sleeve and an original tune in the style named
@@ -1166,25 +1167,34 @@ function buildOffice() {
     const cover = canvasTex(128, 128, (g, w, h) => drawCover(al, g, w, h)), back = canvasTex(256, 256, (g, w, h) => drawBack(al, g, w, h));
     const spine = canvasTex(8, 64, (g, w, h) => { g.fillStyle = al.c[0]; g.fillRect(0, 0, w, h); g.fillStyle = al.c[1]; g.fillRect(0, h * 0.2, w, h * 0.35); });
     const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.76, 0.76), [texMat(cover, 0.7), texMat(back, 0.7), mat(al.c[0], 0.7), mat(al.c[0], 0.7), texMat(spine, 0.7), mat(al.c[0], 0.7)]);
-    sleeve.position.set(side * (0.1 + i * 0.07), y0 + 0.39, -0.13);
+    sleeve.position.set(side * (0.14 + i * 0.1), y0 + 0.39, -0.13);
     sleeve.castShadow = true; sleeve.userData = { album: al, home: sleeve.position.clone() }; rc.add(sleeve); records.push(sleeve);
   });
   // warm strip lights under the top of each cubby, off until the doors open
   const strips = [], stripLights = [];
-  [[-0.58, 1.06], [0.58, 1.06], [-0.58, 2.03], [0.58, 2.03]].forEach(([x, y]) => {
-    const s = box(1.05, 0.015, 0.03, new THREE.MeshBasicMaterial({ color: '#ffcf8f', toneMapped: false }), x, y, 0.45, rc, 0); s.visible = false; strips.push(s);
+  [[-0.83, 1.06], [0.83, 1.06], [-0.83, 2.03], [0.83, 2.03]].forEach(([x, y]) => {
+    const s = box(1.5, 0.015, 0.03, new THREE.MeshBasicMaterial({ color: '#ffcf8f', toneMapped: false }), x, y, 0.45, rc, 0); s.visible = false; strips.push(s);
     const l = new THREE.PointLight('#ffc98a', 0, 2.2, 1.6); l.position.set(x, y - 0.2, 0.3); rc.add(l); stripLights.push(l);
   });
   // doors on hinges at the outer edges
   const doors = [-1, 1].map(side => {
-    const h = new THREE.Group(); h.position.set(side * 1.17, 0, 0.575); rc.add(h);
-    box(1.16, 1.84, 0.03, WALNUT, -side * 0.585, 1.1, 0.015, h, 0.015);
-    cyl(0.045, 0.045, 0.02, '#1a1415', -side * 1.01, 1.75, 0.04, h, 20).rotation.x = Math.PI / 2;
+    const h = new THREE.Group(); h.position.set(side * 1.67, 0, 0.575); rc.add(h);
+    box(1.65, 1.84, 0.03, WALNUT, -side * 0.83, 1.1, 0.015, h, 0.015);
+    cyl(0.045, 0.045, 0.02, '#1a1415', -side * 1.5, 1.75, 0.04, h, 20).rotation.x = Math.PI / 2;
     return h;
   });
-  // little walnut stand on the cabinet top where the record that's playing is shown
-  box(0.44, 0.03, 0.16, WALNUT, -0.96, 2.115, 0.02, rc, 0.01);
-  box(0.44, 0.04, 0.02, WALNUT, -0.96, 2.15, 0.09, rc, 0.008);
+  // record display on the left of the top: a walnut lip the sleeve stands in, leaning back on a slim chrome easel
+  box(0.86, 0.035, 0.14, WALNUT, -1.2, 2.117, 0.08, rc, 0.01);
+  box(0.86, 0.06, 0.02, WALNUT, -1.2, 2.145, 0.145, rc, 0.008);
+  const easel = box(0.03, 0.66, 0.02, mat('#d4d6da', 0.18, 0.95), -1.2, 2.4, -0.16, rc, 0.01); easel.rotation.x = 0.45;
+  // amber glass mushroom lamp on the right, like a warm night light by the records
+  const ml = new THREE.Group(); ml.position.set(1.2, 2.1, -0.1); rc.add(ml);
+  const AMBER = new THREE.MeshStandardMaterial({ color: '#f59a3c', emissive: '#e8641a', emissiveIntensity: 0.75, roughness: 0.15, transparent: true, opacity: 0.95 });
+  lathe([[0, 0], [0.2, 0], [0.21, 0.03], [0.18, 0.06], [0, 0.07]], mat('#5a2410', 0.15, 0.2), ml);
+  lathe([[0, 0.06], [0.07, 0.06], [0.055, 0.2], [0.075, 0.36], [0.09, 0.42], [0, 0.42]], AMBER, ml);
+  lathe([[0, 0.72], [0.12, 0.71], [0.26, 0.66], [0.36, 0.56], [0.4, 0.46], [0.38, 0.42], [0.3, 0.41], [0, 0.42]], AMBER, ml);
+  const mlLight = new THREE.PointLight('#ffa04a', 2.4, 4.5, 1.6); mlLight.position.set(0, 0.55, 0.1); ml.add(mlLight);
+  halo('#ffa04a', 1.3, 0, 0.55, 0, ml, 0.35);
   // turntable
   const tt = new THREE.Group(); tt.position.y = 2.1; rc.add(tt);
   box(1.45, 0.2, 1.05, WALNUT, 0, 0.1, 0, tt, 0.025);
@@ -1210,8 +1220,8 @@ function buildOffice() {
     new THREE.MeshStandardMaterial({ color: '#3b2a22', roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.32, depthWrite: false, envMapIntensity: 1 }));
   cover.position.set(0, 0.065, 0.525); hinge.add(cover);
   [-0.5, 0.5].forEach(x => box(0.08, 0.05, 0.06, mat('#cfcfd2', 0.2, 0.9), x, 0.22, -0.52, tt, 0.01));
-  VINYL = { returning: [], display: { pos: new THREE.Vector3(-0.96, 2.36, 0.02), rx: -0.14, scale: 0.6 }, rc, doors, strips, stripLights, records, tt, platter, armPivot, ttLed, open: false, playing: null, disc: null, anim: null, armTarget: 0, lift: 0 };
-  projects['records'] = { group: rc, object: 'Record cabinet', focus: [4.4, 1.45, 0.3], view: [-7.6, 0.7, 0], normal: [-1, 0, 0], noPanel: true, hide: [desk, chair] };
+  VINYL = { returning: [], display: { pos: new THREE.Vector3(-1.2, 2.52, 0.04), rx: -0.12, scale: 1 }, rc, doors, strips, stripLights, records, tt, platter, armPivot, ttLed, open: false, playing: null, disc: null, anim: null, armTarget: 0, lift: 0 };
+  projects['records'] = { group: rc, object: 'Record cabinet', focus: [4.4, 1.6, 0.3], view: [-8.8, 0.8, 0], normal: [-1, 0, 0], noPanel: true, hide: [desk, chair] };
 
   oliveTree(4.4, -2.5, 1.05);
 
@@ -2599,7 +2609,7 @@ function playRecord(sleeve) {
   const path = new THREE.CatmullRomCurve3([new THREE.Vector3(show.x, show.y + 0.78, show.z), new THREE.Vector3((show.x + to.x) / 2, 2.95, 0.75),
     new THREE.Vector3(to.x, to.y + 0.35, to.z + 0.15), new THREE.Vector3(to.x, to.y + 0.1, to.z), to], false, 'centripetal');
   // afterwards the empty sleeve goes up onto the stand
-  const d = V.display.pos, toStand = new THREE.CatmullRomCurve3([show.clone(), new THREE.Vector3(-0.5, 2.55, 1.05), new THREE.Vector3(d.x, d.y + 0.3, 0.35), d.clone()], false, 'centripetal');
+  const d = V.display.pos, toStand = new THREE.CatmullRomCurve3([show.clone(), new THREE.Vector3(-0.6, 2.8, 1.05), new THREE.Vector3(d.x, d.y + 0.35, 0.45), d.clone()], false, 'centripetal');
   sleeve.userData.flip = false;
   V.playing = sleeve; V.anim = { t: 0, sleeve, disc, show, path, toStand, to, al };
   // unlock audio inside the click itself so browsers allow it
