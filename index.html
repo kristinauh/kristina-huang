@@ -1952,7 +1952,7 @@ function buildLab() {
       [0.35, 0.85, 1.35, 1.85].forEach(y => { box(1.08, 0.44, 0.03, PANEL, px, y, 1.26, u, 0.01); box(0.3, 0.04, 0.04, GOLD, px, y + 0.08, 1.29, u, 0.01); });
     });
     // like a real 70s control room: a flat desk with separate keyboard consoles sitting on it, a row of equipment
-    // along the back of the desk, mixed-size monitors in the shelves, and a few sets sitting on top, tipped forward
+    // along the back of the desk, and mixed-size monitors in the shelves
     const kbGeo = (w) => {
       const sh = new THREE.Shape([new THREE.Vector2(0, 0), new THREE.Vector2(0.55, 0), new THREE.Vector2(0.55, 0.06), new THREE.Vector2(0, 0.22)]);
       const g = new THREE.ExtrudeGeometry(sh, { depth: w, bevelEnabled: true, bevelThickness: 0.01, bevelSize: 0.01, bevelSegments: 2 });
@@ -1971,7 +1971,6 @@ function buildLab() {
       else { const w2 = (dw - 0.1) / 2; keyboard(dx - w2 / 2 - 0.05, w2); keyboard(dx + w2 / 2 + 0.05, w2); }
       fillSlot(u, cx, 2.26, 1.04);
       fillSlot(u, cx, 4.53, 1.0); fillSlot(u, cx, 5.63, 1.0);
-      if (rand() < 0.6) { const w = 0.8 + rand() * 0.6, set = crt(u, cx + (rand() - 0.5) * 0.5, 6.77, -0.05, w, w * 0.78, randScreen()); set.rotation.x = 0.14; }
     }
     return u;
   }
