@@ -791,10 +791,11 @@ const haloTex = canvasTex(128, 128, (g, w, h) => {
   r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.25, 'rgba(255,255,255,.45)'); r.addColorStop(1, 'rgba(255,255,255,0)');
   g.fillStyle = r; g.fillRect(0, 0, w, h);
 });
+const HALOS = [];
 function halo(color, size, x, y, z, parent = ROOT, opacity = 0.55) {
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, toneMapped: false }));
-  // drawn over everything so the glow never gets sliced by the lamp it surrounds
-  s.renderOrder = 10;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  // walls still hide it; it's nudged toward the camera each frame so the lamp it surrounds never slices it
+  s.renderOrder = 10; s.userData.base = new THREE.Vector3(x, y, z); s.userData.push = size * 0.5; HALOS.push(s);
   s.scale.setScalar(size); s.position.set(x, y, z); parent.add(s); return s;
 }
 
@@ -2177,6 +2178,11 @@ function frame() {
     bird.rotation.z = hovered === 'pingu' ? Math.sin(t * 45) * 0.06 : 0;
   }
   placeLabels();
+  for (const h of HALOS) {
+    const w = h.parent.localToWorld(h.userData.base.clone());
+    w.addScaledVector(camera.position.clone().sub(w).normalize(), h.userData.push);
+    h.position.copy(h.parent.worldToLocal(w));
+  }
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
