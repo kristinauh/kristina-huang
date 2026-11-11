@@ -1160,15 +1160,43 @@ function buildOffice() {
     g.globalAlpha = 0.35; for (let i = 0; i < 4; i++) g.fillRect(20, 196 + i * 12, 60 + ((i * 37) % 90), 4); g.globalAlpha = 1;
     g.font = '600 10px ui-monospace, Menlo, monospace'; g.textAlign = 'right'; g.fillText(`${al.bpm} BPM`, w - 18, h - 16);
   };
+  // the rest of the collection: original records made from genre templates, so every slot has something to play
+  {
+    const GEN = [
+      { insp: 'smoky jazz club records', key: 'major', scale: 'dorian', pad: 'piano', bass: 'walk', drums: 'jazz', wave: 'triangle', bpm: 84 },
+      { insp: 'lo-fi beats', key: 'major', scale: 'penta', pad: 'pad', bass: 'root', drums: 'boombap', wave: 'triangle', bpm: 76, lp: 1400 },
+      { insp: 'Japanese city pop', key: 'major', scale: 'major', pad: 'stab', bass: 'walk', drums: 'four', wave: 'sawtooth', bpm: 106 },
+      { insp: 'synthwave', key: 'minor', scale: 'minor', pad: 'arp', bass: 'root', drums: 'four', wave: 'square', bpm: 108 },
+      { insp: 'C-pop ballads', key: 'major', scale: 'penta', pad: 'piano', bass: 'root', drums: 'ballad', wave: 'sine', bpm: 70, melDur: 1 },
+      { insp: '90s R&B', key: 'minor', scale: 'mpenta', pad: 'pad', bass: 'walk', drums: 'boombap', wave: 'triangle', bpm: 86 },
+      { insp: 'bossa nova', key: 'major', scale: 'major', pad: 'piano', bass: 'walk', drums: 'bossa', wave: 'sine', bpm: 94 },
+      { insp: 'melodic trap', key: 'minor', scale: 'mpenta', pad: 'none', bass: '808', drums: 'trap', wave: 'triangle', bpm: 138 },
+      { insp: 'ambient piano', key: 'major', scale: 'lydian', pad: 'pad', bass: 'root', drums: 'none', wave: 'sine', bpm: 64, melDur: 1.5 },
+      { insp: 'disco funk', key: 'minor', scale: 'mpenta', pad: 'stab', bass: 'walk', drums: 'funk', wave: 'sawtooth', bpm: 114 },
+      { insp: 'bedroom indie pop', key: 'major', scale: 'major', pad: 'stab', bass: 'root', drums: 'four', wave: 'triangle', bpm: 100, lp: 1800 },
+      { insp: 'J-pop anime openings', key: 'major', scale: 'major', pad: 'arp', bass: 'walk', drums: 'four', wave: 'square', bpm: 130 },
+    ];
+    const A = ['Paper', 'Neon', 'Quiet', 'Velvet', 'Sunday', 'Honey', 'Silver', 'Late', 'Golden', 'Blue', 'Peach', 'Cloud', 'Ocean', 'Lantern', 'Midnight', 'Cherry', 'Window', 'Little', 'Soft', 'Porch'];
+    const B = ['Moons', 'Avenue', 'Rooms', 'Weather', 'Hours', 'Signals', 'Gardens', 'Polaroids', 'Radio', 'Tides', 'Streets', 'Echoes', 'Postcards', 'Lights', 'Daydream', 'Machines', 'Corners', 'Waves', 'Kites', 'Trains'];
+    const COLS = [['#22333b', '#eae0d5'], ['#f6bd60', '#3d405b'], ['#84a59d', '#f7ede2'], ['#e07a5f', '#f4f1de'], ['#3d5a80', '#e0fbfc'], ['#6d597a', '#ffcdb2'], ['#2a9d8f', '#e9c46a'],
+      ['#f28482', '#fff'], ['#463f3a', '#e0afa0'], ['#003049', '#fcbf49'], ['#9a8c98', '#f2e9e4'], ['#bc4749', '#f2e8cf'], ['#ffafcc', '#3a0ca3'], ['#344e41', '#dad7cd']];
+    const ARTS = ['moon', 'sun', 'rain', 'waves', 'grid', 'stripes', 'cloud', 'eye', 'rose', 'rings', 'coin', 'diamond', 'circle', 'heart', 'flower'];
+    const PROGS = [[0, 5, 3, 4], [0, 3, 4, 0], [1, 4, 0, 5], [0, 4, 5, 3], [0, 5, 2, 6], [3, 4, 2, 5]];
+    let seed = 7; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647, pick = a => a[Math.floor(r() * a.length)];
+    while (ALBUMS.length < 64) {
+      const g = GEN[ALBUMS.length % GEN.length];
+      ALBUMS.push({ ...g, title: `${pick(A)} ${pick(B)}`, insp: [g.insp], c: pick(COLS), art: pick(ARTS), prog: pick(PROGS), root: 48 + Math.floor(r() * 10), bpm: g.bpm + Math.round(r() * 8 - 4), mel: 0.3 + r() * 0.3 });
+    }
+  }
   const records = [];
   ALBUMS.forEach((al, n) => {
     // dealt round the four cubbies so each gets a mix
     const cub = n % 4, i = Math.floor(n / 4), side = cub % 2 ? 1 : -1, y0 = cub < 2 ? 0.16 : 1.12;
-    const cover = canvasTex(128, 128, (g, w, h) => drawCover(al, g, w, h)), back = canvasTex(256, 256, (g, w, h) => drawBack(al, g, w, h));
+    const cover = canvasTex(128, 128, (g, w, h) => drawCover(al, g, w, h));
     const spine = canvasTex(8, 64, (g, w, h) => { g.fillStyle = al.c[0]; g.fillRect(0, 0, w, h); g.fillStyle = al.c[1]; g.fillRect(0, h * 0.2, w, h * 0.35); });
-    const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.76, 0.76), [texMat(cover, 0.7), texMat(back, 0.7), mat(al.c[0], 0.7), mat(al.c[0], 0.7), texMat(spine, 0.7), mat(al.c[0], 0.7)]);
-    sleeve.position.set(side * (0.14 + i * 0.1), y0 + 0.39, -0.13);
-    sleeve.castShadow = true; sleeve.userData = { album: al, home: sleeve.position.clone() }; rc.add(sleeve); records.push(sleeve);
+    const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.76, 0.76), [texMat(cover, 0.7), texMat(cover, 0.7), mat(al.c[0], 0.7), mat(al.c[0], 0.7), texMat(spine, 0.7), mat(al.c[0], 0.7)]);
+    sleeve.position.set(side * (0.1 + i * 0.095), y0 + 0.39, -0.13);
+    sleeve.castShadow = true; sleeve.userData = { album: al, home: sleeve.position.clone(), back: () => canvasTex(256, 256, (g, w, h) => drawBack(al, g, w, h)) }; rc.add(sleeve); records.push(sleeve);
   });
   // warm strip lights under the top of each cubby, off until the doors open
   const strips = [], stripLights = [];
@@ -1183,12 +1211,12 @@ function buildOffice() {
     cyl(0.045, 0.045, 0.02, '#1a1415', -side * 1.5, 1.75, 0.04, h, 20).rotation.x = Math.PI / 2;
     return h;
   });
-  // record display on the left of the top: a walnut lip the sleeve stands in, leaning back on a slim chrome easel
-  box(0.86, 0.035, 0.14, WALNUT, -1.2, 2.117, 0.08, rc, 0.01);
-  box(0.86, 0.06, 0.02, WALNUT, -1.2, 2.145, 0.145, rc, 0.008);
-  const easel = box(0.03, 0.66, 0.02, mat('#d4d6da', 0.18, 0.95), -1.2, 2.4, -0.16, rc, 0.01); easel.rotation.x = 0.45;
-  // amber glass mushroom lamp on the right, like a warm night light by the records
-  const ml = new THREE.Group(); ml.position.set(1.2, 2.1, -0.1); rc.add(ml);
+  // record display on the right of the top: a walnut lip the sleeve stands in, leaning back on a slim chrome easel
+  box(0.86, 0.035, 0.14, WALNUT, 1.2, 2.117, 0.08, rc, 0.01);
+  box(0.86, 0.06, 0.02, WALNUT, 1.2, 2.145, 0.145, rc, 0.008);
+  const easel = box(0.03, 0.66, 0.02, mat('#d4d6da', 0.18, 0.95), 1.2, 2.4, -0.16, rc, 0.01); easel.rotation.x = 0.45;
+  // amber glass mushroom lamp on the left, like a warm night light by the records
+  const ml = new THREE.Group(); ml.position.set(-1.2, 2.1, -0.1); rc.add(ml);
   const AMBER = new THREE.MeshStandardMaterial({ color: '#f59a3c', emissive: '#e8641a', emissiveIntensity: 0.75, roughness: 0.15, transparent: true, opacity: 0.95 });
   lathe([[0, 0], [0.2, 0], [0.21, 0.03], [0.18, 0.06], [0, 0.07]], mat('#5a2410', 0.15, 0.2), ml);
   lathe([[0, 0.06], [0.07, 0.06], [0.055, 0.2], [0.075, 0.36], [0.09, 0.42], [0, 0.42]], AMBER, ml);
@@ -1220,8 +1248,8 @@ function buildOffice() {
     new THREE.MeshStandardMaterial({ color: '#3b2a22', roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.32, depthWrite: false, envMapIntensity: 1 }));
   cover.position.set(0, 0.065, 0.525); hinge.add(cover);
   [-0.5, 0.5].forEach(x => box(0.08, 0.05, 0.06, mat('#cfcfd2', 0.2, 0.9), x, 0.22, -0.52, tt, 0.01));
-  VINYL = { returning: [], display: { pos: new THREE.Vector3(-1.2, 2.52, 0.04), rx: -0.12, scale: 1 }, rc, doors, strips, stripLights, records, tt, platter, armPivot, ttLed, open: false, playing: null, disc: null, anim: null, armTarget: 0, lift: 0 };
-  projects['records'] = { group: rc, object: 'Record cabinet', focus: [4.4, 1.6, 0.3], view: [-8.8, 0.8, 0], normal: [-1, 0, 0], noPanel: true, hide: [desk, chair] };
+  VINYL = { returning: [], display: { pos: new THREE.Vector3(1.2, 2.52, 0.04), rx: -0.12, scale: 1 }, rc, doors, strips, stripLights, records, tt, platter, armPivot, ttLed, open: false, playing: null, disc: null, anim: null, armTarget: 0, lift: 0 };
+  projects['records'] = { group: rc, object: 'Record cabinet', focus: [4.4, 1.6, 0.3], view: [-8.1, 0.8, 0], normal: [-1, 0, 0], noPanel: true, hide: [desk, chair] };
 
   oliveTree(4.4, -2.5, 1.05);
 
@@ -2007,7 +2035,8 @@ function buildWorkshop() {
   box(0.1, 0.07, 0.16, mat('#2a2826', 0.5), 0, 0.08, 0.36, car, 0.01);
   // the controller board sits over the rear half of the upper deck on standoffs: a wide black board with
   // chamfered corners, a header row along one side, a tall heatsink at the back corner and a blue terminal block
-  const pcbB = new THREE.Group(); pcbB.position.set(0, 0.36, -0.17); car.add(pcbB);
+  // turned round and pushed back so its edge lines up with the back of the chassis
+  const pcbB = new THREE.Group(); pcbB.position.set(0, 0.36, 0.17); pcbB.rotation.y = Math.PI; car.add(pcbB);
   const bs = new THREE.Shape([[-0.25, -0.26], [0.25, -0.26], [0.27, -0.22], [0.27, 0.12], [0.2, 0.26], [-0.2, 0.26], [-0.27, 0.12], [-0.27, -0.22]].map(([x, z]) => new THREE.Vector2(x, z)));
   const bg = new THREE.ExtrudeGeometry(bs, { depth: 0.014, bevelEnabled: false }); bg.rotateX(Math.PI / 2); bg.translate(0, 0.014, 0);
   const board = new THREE.Mesh(bg, mat('#111114', 0.35)); board.castShadow = board.receiveShadow = true; pcbB.add(board);
@@ -2506,7 +2535,46 @@ function pickRecord(e) {
   if (!hit) return null;
   return VINYL.records.includes(hit.object) ? hit.object : 'turntable';
 }
-let AC = null, music = null;
+let AC = null, music = null, sfxNoise = null;
+// small synthesized sound effects: thocky keys, mouse clicks, doors
+function sfx(kind) {
+  try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state !== 'running') AC.resume(); } catch { return; }
+  if (!sfxNoise) { sfxNoise = AC.createBuffer(1, AC.sampleRate, AC.sampleRate); const d = sfxNoise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+  const t = AC.currentTime + 0.005, j = 1 + (Math.random() - 0.5) * 0.15;
+  const noise = (type, f, q, vol, dur, at = 0, sweepTo) => {
+    const src = AC.createBufferSource(), fl = AC.createBiquadFilter(), g = AC.createGain(); src.buffer = sfxNoise;
+    fl.type = type; fl.frequency.setValueAtTime(f, t + at); if (sweepTo) fl.frequency.exponentialRampToValueAtTime(sweepTo, t + at + dur); fl.Q.value = q;
+    g.gain.setValueAtTime(0.0001, t + at); g.gain.linearRampToValueAtTime(vol, t + at + Math.min(0.005, dur / 4)); g.gain.exponentialRampToValueAtTime(0.0001, t + at + dur);
+    src.connect(fl); fl.connect(g); g.connect(AC.destination); src.start(t + at, Math.random() * 0.5); src.stop(t + at + dur + 0.02);
+  };
+  const tone = (type, f0, f1, vol, dur, at = 0) => {
+    const o = AC.createOscillator(), g = AC.createGain(); o.type = type;
+    o.frequency.setValueAtTime(f0, t + at); o.frequency.exponentialRampToValueAtTime(f1, t + at + dur);
+    g.gain.setValueAtTime(vol, t + at); g.gain.exponentialRampToValueAtTime(0.0001, t + at + dur); o.connect(g); g.connect(AC.destination); o.start(t + at); o.stop(t + at + dur + 0.02);
+  };
+  if (kind === 'key' || kind === 'space') {
+    // a deep, muffled thock: body thump, plastic knock, and a tiny top click
+    const deep = kind === 'space' ? 0.75 : 1;
+    tone('sine', 190 * deep * j, 90 * deep, 0.22, 0.07);
+    noise('bandpass', 1100 * deep * j, 1.4, 0.16, 0.05);
+    noise('highpass', 4500, 0.7, 0.03, 0.012);
+  } else if (kind === 'click') {
+    noise('highpass', 2600 * j, 0.8, 0.09, 0.012); tone('sine', 2200, 1800, 0.02, 0.01);
+    noise('highpass', 2300 * j, 0.8, 0.05, 0.01, 0.07);
+  } else if (kind === 'door') {
+    // creaky hinge, then the soft thud of the door
+    const o = AC.createOscillator(), fl = AC.createBiquadFilter(), g = AC.createGain(); o.type = 'sawtooth';
+    [210, 250, 195, 265, 230, 280].forEach((f, i) => o.frequency.linearRampToValueAtTime(f * j, t + i * 0.09));
+    fl.type = 'bandpass'; fl.frequency.value = 1100; fl.Q.value = 6;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.035, t + 0.08); g.gain.linearRampToValueAtTime(0.0001, t + 0.5);
+    o.connect(fl); fl.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + 0.52);
+    tone('sine', 80, 45, 0.3, 0.25, 0.5); noise('lowpass', 300, 0.7, 0.12, 0.18, 0.5);
+  } else if (kind === 'hatch') {
+    noise('bandpass', 350, 1.2, 0.12, 0.45, 0, 2200); tone('sine', 660, 990, 0.04, 0.15, 0.32);
+  } else if (kind === 'cabinet') {
+    noise('bandpass', 700 * j, 3, 0.05, 0.25); tone('sine', 120, 70, 0.08, 0.12, 0.05);
+  }
+}
 const SCALES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], dorian: [0, 2, 3, 5, 7, 9, 10], lydian: [0, 2, 4, 6, 7, 9, 11], penta: [0, 2, 4, 7, 9], mpenta: [0, 3, 5, 7, 10] };
 const DRUMS = {
   boombap: { k: 'k.....k...k.....', s: '....s.......s...', h: 'h.h.h.h.h.h.h.h.' },
@@ -2598,7 +2666,7 @@ function makeDisc(al) {
 function playRecord(sleeve) {
   const V = VINYL; if (V.anim) return;
   // the record on the stand turns round to show what it was inspired by
-  if (V.playing === sleeve) { sleeve.userData.flip = !sleeve.userData.flip; return; }
+  if (V.playing === sleeve) { const u = sleeve.userData; u.flip = !u.flip; u.flipT = 0; u.flipFrom = sleeve.rotation.y; return; }
   if (sleeve.userData.ret) return;
   stopRecord(true);
   const al = sleeve.userData.album;
@@ -2609,9 +2677,11 @@ function playRecord(sleeve) {
   const path = new THREE.CatmullRomCurve3([new THREE.Vector3(show.x, show.y + 0.78, show.z), new THREE.Vector3((show.x + to.x) / 2, 2.95, 0.75),
     new THREE.Vector3(to.x, to.y + 0.35, to.z + 0.15), new THREE.Vector3(to.x, to.y + 0.1, to.z), to], false, 'centripetal');
   // afterwards the empty sleeve goes up onto the stand
-  const d = V.display.pos, toStand = new THREE.CatmullRomCurve3([show.clone(), new THREE.Vector3(-0.6, 2.8, 1.05), new THREE.Vector3(d.x, d.y + 0.35, 0.45), d.clone()], false, 'centripetal');
-  sleeve.userData.flip = false;
-  V.playing = sleeve; V.anim = { t: 0, sleeve, disc, show, path, toStand, to, al };
+  const d = V.display.pos, toStand = new THREE.CatmullRomCurve3([show.clone(), new THREE.Vector3(0.6, 2.8, 1.05), new THREE.Vector3(d.x, d.y + 0.35, 0.45), d.clone()], false, 'centripetal');
+  const ud = sleeve.userData; ud.flip = false; ud.flipT = 1;
+  if (!ud.backDone) { sleeve.material[1] = texMat(ud.back(), 0.7); ud.backDone = true; }
+  const waiting = V.records.some(r => r.userData.ret);
+  V.playing = sleeve; V.anim = { t: waiting ? -1.7 : 0, sleeve, disc, show, path, toStand, to, al };
   // unlock audio inside the click itself so browsers allow it
   try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); } catch {}
 }
@@ -2650,7 +2720,16 @@ TICKS.push({ room: 'office', fn: t => {
       if (q >= 1) { r.userData.ret = null; r.position.copy(r.userData.home); r.rotation.set(0, 0, 0); r.scale.setScalar(1); }
       return;
     }
-    if (r === V.playing) { if (!V.anim) r.rotation.y += ((r.userData.flip ? Math.PI / 2 : -Math.PI / 2) - r.rotation.y) * k; return; }
+    if (r === V.playing) {
+      const u = r.userData;
+      if (!V.anim && u.flipT < 1) {
+        // up and forward off the ledge, turn round, then settle back against the easel
+        u.flipT = Math.min(1, u.flipT + dt / 0.9); const lift = Math.sin(Math.PI * Math.min(1, u.flipT * 1.15));
+        r.rotation.y = u.flipFrom + ((u.flip ? Math.PI / 2 : -Math.PI / 2) - u.flipFrom) * ease(cl((u.flipT - 0.2) / 0.6));
+        r.position.copy(V.display.pos).add(new THREE.Vector3(0, 0.55 * lift, 0.45 * lift));
+      }
+      return;
+    }
     const tz = r.userData.home.z + (r.userData.hover ? 0.12 : 0); r.position.z += (tz - r.position.z) * k * 1.5;
   });
   // record animation: sleeve slides out, vinyl lifts free, arcs up and lands on the platter
@@ -2764,6 +2843,7 @@ let switching = false;
 function goRoom(id, via) {
   if (id !== 'office') stopRecord();
   if (switching || id === room) return;
+  sfx(via?.userData.swing ? 'door' : 'hatch');
   switching = true;
   if (current) close();
   const swing = via?.userData.swing && !reduced ? 700 : 0;
@@ -2846,6 +2926,7 @@ addEventListener('pointerup', e => {
   else if (current) close();
 });
 addEventListener('keydown', e => { if (e.key === 'Escape' && current && !term.editor) close(); });
+addEventListener('pointerdown', e => { if (e.pointerType === 'mouse') sfx('click'); }, true);
 addEventListener('resize', resize);
 
 // render loop
@@ -2966,7 +3047,7 @@ const panel = $('#panel');
 // objects that would block a close-up are hidden while it's open
 const setHidden = (pid, hidden) => (PROJECTS[pid]?.hide || []).forEach(o => { o.visible = !hidden; });
 function open(pid) {
-  if (PROJECTS[pid].noPanel) { if (current && current !== pid) close(); setHidden(pid, true); current = pid; hovered = null; $('#labels').classList.add('hide'); setGoal(pid); VINYL.open = true; return; }
+  if (PROJECTS[pid].noPanel) { if (current && current !== pid) close(); setHidden(pid, true); current = pid; hovered = null; $('#labels').classList.add('hide'); setGoal(pid); if (!VINYL.open) sfx('cabinet'); VINYL.open = true; return; }
   if (PROJECTS[pid].computer) { if (current && current !== pid) close(); current = pid; hovered = null; $('#labels').classList.add('hide'); canvas.style.pointerEvents = 'none'; showComputer(pcMode); return; }
   if (current) setHidden(current, false);
   setHidden(pid, true);
@@ -2976,7 +3057,7 @@ function open(pid) {
   setGoal(pid); subChat(pid); renderPanel(); renderChat();
 }
 function close() {
-  if (current === 'records') { VINYL.open = false; VINYL.records.forEach(r => r.userData.hover = false); }
+  if (current === 'records') { sfx('cabinet'); VINYL.open = false; VINYL.records.forEach(r => r.userData.hover = false); }
   if (current === 'computer') { canvas.style.pointerEvents = ''; $('#termKey').blur(); }
   if (current) setHidden(current, false);
   current = null;
@@ -3096,6 +3177,7 @@ function complete(v) {
 }
 tKey.addEventListener('input', () => { tIn.textContent = tKey.value; });
 tKey.addEventListener('keydown', e => {
+  if (!e.repeat && (e.key.length === 1 || ['Enter', 'Backspace', 'Tab'].includes(e.key))) sfx(e.key === ' ' || e.key === 'Enter' ? 'space' : 'key');
   if (term.editor === 'nano') { if ((e.ctrlKey && e.key.toLowerCase() === 'x') || e.key === 'Escape') { e.preventDefault(); closeEditor(); } else e.preventDefault(); return; }
   if (term.editor === 'vim') {
     if (e.key === 'Enter') { if (/^:q!?$|^:wq$|^:x$/.test(term.vimCmd)) closeEditor(); term.vimCmd = ''; $('#edFoot').textContent = '-- read only --   type :q and press enter to quit'; }
