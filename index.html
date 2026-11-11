@@ -1619,11 +1619,12 @@ function buildWorkshop() {
 
   // centre workbench: a rounded cream slab on two pedestals, glowing underneath
   const wb = new THREE.Group(); wb.position.set(0.4, 0, 0.6); ROOT.add(wb);
-  [-1.55, 1.55].forEach(x => { box(0.3, 2.15, 1.4, CR2, x, 1.08, 0, wb, 0.12); box(0.32, 0.08, 1.2, ORANGE, x, 1.7, 0, wb, 0.03); });
-  box(2.8, 0.08, 1.2, CR, 0, 0.6, 0, wb, 0.03);
-  [-0.8, 0, 0.8].forEach((x, i) => box(0.65, 0.34, 0.9, i === 1 ? PINK : CR, x, 0.82, 0, wb, 0.06));
-  box(4.3, 0.16, 2.0, CR, 0, 2.23, 0, wb, 0.08);
-  box(4.0, 0.03, 1.7, glowM('#ffd9b0'), 0, 2.135, 0, wb, 0.01);
+  // longer to the right, so the console computer gets its own end of the bench
+  [-1.55, 2.95].forEach(x => { box(0.3, 2.15, 1.4, CR2, x, 1.08, 0, wb, 0.12); box(0.32, 0.08, 1.2, ORANGE, x, 1.7, 0, wb, 0.03); });
+  box(4.3, 0.08, 1.2, CR, 0.7, 0.6, 0, wb, 0.03);
+  [-0.8, 0, 0.8, 1.6, 2.3].forEach((x, i) => box(0.6, 0.34, 0.9, i % 2 ? PINK : CR, x, 0.82, 0, wb, 0.06));
+  box(5.7, 0.16, 2.0, CR, 0.7, 2.23, 0, wb, 0.08);
+  box(5.4, 0.03, 1.7, glowM('#ffd9b0'), 0.7, 2.135, 0, wb, 0.01);
   const matTex = canvasTex(256, 160, (g, w, h) => { g.fillStyle = '#f2a6bf'; g.fillRect(0, 0, w, h); g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 1; for (let i = 0; i < w; i += 16) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, h); g.stroke(); } for (let j = 0; j < h; j += 16) { g.beginPath(); g.moveTo(0, j); g.lineTo(w, j); g.stroke(); } });
   // left half: pink mat with a breadboard, a small black board and jumper wires
   box(1.7, 0.02, 1.3, texMat(matTex, 0.7), -1.2, 2.32, 0.2, wb, 0.005);
@@ -1635,14 +1636,15 @@ function buildWorkshop() {
   lathe([[0, 0], [0.12, 0], [0.13, 0.28], [0.11, 0.28], [0.1, 0.03], [0, 0.03]], PINK, wb).position.set(-0.55, 2.31, -0.6);
 
   // right half: a retro console computer, a cream monitor hood over a sloped desk of three control panels
-  const cc = new THREE.Group(); cc.position.set(0.95, 2.31, -0.15); wb.add(cc);
+  // runs the full depth of the bench: controls at the front edge, the monitor hood at the back edge
+  const cc = new THREE.Group(); cc.position.set(1.95, 2.31, 0); wb.add(cc);
   const SAGE = mat('#a9b79a', 0.55), KN = mat('#2b2724', 0.4);
-  const wedge = new THREE.Shape([new THREE.Vector2(-0.1, 0), new THREE.Vector2(0.8, 0), new THREE.Vector2(0.8, 0.12), new THREE.Vector2(-0.1, 0.35)]);
+  const wedge = new THREE.Shape([new THREE.Vector2(-0.1, 0), new THREE.Vector2(0.98, 0), new THREE.Vector2(0.98, 0.12), new THREE.Vector2(-0.1, 0.35)]);
   const wg = new THREE.ExtrudeGeometry(wedge, { depth: 2.1, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 2 });
   wg.translate(0, 0, -1.05); wg.rotateY(-Math.PI / 2);
   const desk = new THREE.Mesh(wg, CR); desk.castShadow = desk.receiveShadow = true; cc.add(desk);
-  const slope = new THREE.Group(); slope.position.set(0, 0.245, 0.35); slope.rotation.x = -Math.PI / 2 + 0.25; cc.add(slope);
-  [[-0.7, CR], [0, SAGE], [0.7, CR]].forEach(([x, m]) => box(0.66, 0.84, 0.03, m, x, 0, 0.005, slope, 0.03));
+  const slope = new THREE.Group(); slope.position.set(0, 0.245, 0.44); slope.rotation.x = -Math.PI / 2 + 0.21; cc.add(slope);
+  [[-0.7, CR], [0, SAGE], [0.7, CR]].forEach(([x, m]) => box(0.66, 1.0, 0.03, m, x, 0, 0.005, slope, 0.03));
   for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++) { const k = cyl(0.035, 0.04, 0.05, KN, -0.95 + c * 0.17, -0.25 + r * 0.2, 0.04, slope, 16); k.rotation.x = Math.PI / 2; }
   for (let i = 0; i < 6; i++) { box(0.03, 0.08, 0.03, mat('#d4d6da', 0.2, 0.9), -0.95 + i * 0.1, 0.2, 0.05, slope, 0.01); ball(0.018, ['#e8423a', '#f6d36a', '#e8e2d4'][i % 3], -0.95 + i * 0.1, 0.3, 0.035, slope); }
   const dialD = cyl(0.11, 0.11, 0.03, mat('#f2efe8', 0.3), 0.05, 0.12, 0.035, slope, 28); dialD.rotation.x = Math.PI / 2;
@@ -1653,7 +1655,7 @@ function buildWorkshop() {
   [0.58, 0.82].forEach(x => { const gauge = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.018, 10, 24), mat('#d4d6da', 0.2, 0.9)); gauge.position.set(x, -0.2, 0.03); slope.add(gauge); const face = cyl(0.06, 0.06, 0.01, '#1c1a19', x, -0.2, 0.025, slope, 20); face.rotation.x = Math.PI / 2; });
   halo('#ff6a4a', 0.7, 0.7, 0.16, 0.08, slope, 0.25);
   // monitor hood with a deep frame around a light blue screen
-  box(1.55, 1.2, 0.7, CR, 0, 0.95, -0.45, cc, 0.05);
+  box(1.55, 1.2, 0.86, CR, 0, 0.95, -0.55, cc, 0.05);
   box(1.36, 0.95, 0.04, CR2, 0, 1.0, -0.09, cc, 0.03);
   box(1.18, 0.74, 0.02, DARK, 0, 1.03, -0.07, cc, 0.03);
   const blue = canvasTex(256, 160, (g, w, h) => {
