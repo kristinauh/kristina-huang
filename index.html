@@ -436,6 +436,44 @@ body.public #panel .list input { pointer-events: none; }
 .tb-app { width: 30px; height: 26px; border: 0; border-radius: 7px; background: none; font: 700 12px/1 ui-monospace, Menlo, monospace; color: #4a2433; }
 .tb-app.on, .tb-app:hover { background: rgba(255, 255, 255, .8); }
 .tb-clock { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+/* professional portfolio look for the modern screen: neutral desktop and browser, clean type, one quiet accent */
+#os { background: linear-gradient(160deg, #dfe4ea 0%, #c9d1db 100%); }
+.b-tabs { background: #dee1e6; color: #3c4043; }
+.b-tab .fav { background: #1f2937; box-shadow: none; border-radius: 3px; }
+.b-bar { border-bottom-color: #e5e7eb; color: #5f6368; }
+.omni { background: #f1f3f4; }
+.avatar { background: #1f2937; }
+.taskbar { background: rgba(255, 255, 255, .6); color: #1f2937; }
+.tb-start { color: #1f2937; }
+.browser #site { font: 15px/1.65 -apple-system, "Segoe UI", system-ui, Roboto, Helvetica, Arial, sans-serif; color: #1f2937; background: #fff; }
+#siteNav { align-items: center; gap: 2px; padding: 14px 32px; border-bottom: 1px solid #eef0f3; }
+#siteNav .brand { margin-right: auto; font: 700 15px/1 -apple-system, "Segoe UI", system-ui, sans-serif; letter-spacing: -.01em; }
+#siteNav button { border-radius: 0; padding: 6px 10px; font: 500 13px/1 -apple-system, "Segoe UI", system-ui, sans-serif; color: #6b7280; border-bottom: 2px solid transparent; }
+#siteNav button.on { background: none; color: #111827; border-bottom-color: #111827; }
+#siteMain { padding: 34px 48px 48px; }
+#siteMain .hero { padding: 6px 0 26px; border-bottom: 1px solid #eef0f3; margin-bottom: 8px; }
+#siteMain .eyebrow { margin: 0 0 10px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #6b7280; font-weight: 600; }
+#siteMain h1 { font: 700 40px/1.1 -apple-system, "Segoe UI", system-ui, sans-serif; letter-spacing: -.02em; margin: 0 0 14px; color: #111827; }
+#siteMain h2 { font: 700 13px/1 -apple-system, "Segoe UI", system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #6b7280; margin: 22px 0 14px; }
+#siteMain h3 { font: 600 16px/1.3 -apple-system, "Segoe UI", system-ui, sans-serif; margin: 0 0 4px; color: #111827; }
+#siteMain .lead { color: #4b5563; max-width: 62ch; margin: 0 0 18px; }
+#siteMain .cta { display: flex; gap: 10px; }
+#siteMain .btn-p, #siteMain .btn-s { font: 600 13px/1 -apple-system, "Segoe UI", system-ui, sans-serif; padding: 10px 16px; border-radius: 8px; text-decoration: none; cursor: pointer; }
+#siteMain .btn-p { background: #111827; color: #fff; border: 1px solid #111827; }
+#siteMain .btn-s { background: #fff; color: #111827; border: 1px solid #d1d5db; }
+#siteMain .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+#siteMain .pcard { border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 18px; background: #fff; display: flex; flex-direction: column; gap: 6px; }
+#siteMain .pcard p { margin: 0; color: #4b5563; font-size: 14px; }
+#siteMain .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+#siteMain .tag { font-size: 11px; font-weight: 600; color: #374151; background: #f3f4f6; border-radius: 999px; padding: 3px 9px; }
+#siteMain .more { margin-top: auto; padding-top: 6px; font-size: 13px; color: #2563eb; font-weight: 600; text-decoration: none; }
+#siteMain .tl { display: grid; grid-template-columns: 130px 1fr; gap: 18px; padding: 14px 0; border-top: 1px solid #f1f2f4; }
+#siteMain .tl .when { color: #6b7280; font-size: 13px; padding-top: 2px; }
+#siteMain .tl .org { color: #4b5563; font-size: 14px; }
+#siteMain .tl p { margin: 6px 0 0; color: #4b5563; font-size: 14px; }
+#siteMain .tl a { color: #2563eb; font-weight: 600; text-decoration: none; }
+#siteMain .muted { color: #9ca3af; }
 </style>
 
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGcgZmlsbD0iI2U0ZTZlYyI+CiAgICA8cmVjdCB4PSIyIiB5PSIxMyIgd2lkdGg9IjkiIGhlaWdodD0iNSIgcng9IjEuNSIvPjxyZWN0IHg9IjIiIHk9IjIzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+PHJlY3QgeD0iMiIgeT0iMzMiIHdpZHRoPSI5IiBoZWlnaHQ9IjUiIHJ4PSIxLjUiLz48cmVjdCB4PSIyIiB5PSI0MyIgd2lkdGg9IjkiIGhlaWdodD0iNSIgcng9IjEuNSIvPgogICAgPHJlY3QgeD0iNTMiIHk9IjEzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+PHJlY3QgeD0iNTMiIHk9IjIzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+PHJlY3QgeD0iNTMiIHk9IjMzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+PHJlY3QgeD0iNTMiIHk9IjQzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+CiAgPC9nPgogIDxyZWN0IHg9IjgiIHk9IjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI1NCIgcng9IjgiIGZpbGw9IiNkOTcyOWEiLz4KICA8cmVjdCB4PSI4IiB5PSI1IiB3aWR0aD0iNDgiIGhlaWdodD0iNTAiIHJ4PSI4IiBmaWxsPSIjZjI5YmJkIi8+CiAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxMyIgcj0iMyIgZmlsbD0iI2Q5NzI5YSIvPgogIDxwYXRoIGQ9Ik0xOSAyNCBWMzkgTTE5IDMzIEwyNyAyNCBNMjIuNSAzMCBMMjggMzkgTTM0IDI0IFYzOSBNNDUgMjQgVjM5IE0zNCAzMS41IEg0NSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmNmY5IiBzdHJva2Utb3BhY2l0eT0iLjkyIiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InNxdWFyZSIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIvPgogIDxwYXRoIGQ9Ik0xOSA0NSBIMjYgTTI5IDQ1IEgzMyBNMzYgNDUgSDQ1IiBzdHJva2U9IiNmZmY2ZjkiIHN0cm9rZS1vcGFjaXR5PSIuNTUiIHN0cm9rZS13aWR0aD0iMS42Ii8+Cjwvc3ZnPgo=">
@@ -1159,16 +1197,21 @@ function buildOffice() {
   const pcModern = new THREE.Group(); pcModern.position.set(0.15, 2.53, -0.35); desk.add(pcModern);
   const MW = mat('#f4eef0', 0.35), MB = mat('#e9c3d0', 0.4);
   const site = canvasTex(480, 290, (g, w, h) => {
-    g.fillStyle = '#fff8fa'; g.fillRect(0, 0, w, h);
-    g.fillStyle = '#f4a9c0'; g.fillRect(0, 0, w, 34);
-    g.fillStyle = '#ffffff'; g.font = '700 16px system-ui, sans-serif'; g.fillText('Kristina Huang', 14, 23);
-    g.font = '600 11px system-ui, sans-serif'; ['About', 'Experience', 'Projects', 'Contact'].forEach((t, i) => g.fillText(t, 230 + i * 62, 22));
-    g.fillStyle = '#4a2433'; g.font = '700 26px system-ui, sans-serif'; g.fillText('Hi, I’m Kristina.', 24, 90);
-    g.fillStyle = '#94677a'; g.font = '400 13px system-ui, sans-serif'; g.fillText('Embedded systems · PCB design · firmware', 24, 116);
-    [[24, '#f7d0dc'], [172, '#d8f0ec'], [320, '#efe3c8']].forEach(([x, c]) => { g.fillStyle = c; g.fillRect(x, 150, 136, 100); g.fillStyle = 'rgba(74,36,51,.5)'; g.fillRect(x + 10, 230, 80, 8); });
+    g.fillStyle = '#d3d9e1'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#ffffff'; g.fillRect(10, 10, w - 20, h - 34);
+    g.fillStyle = '#dee1e6'; g.fillRect(10, 10, w - 20, 26);
+    g.fillStyle = '#111827'; g.font = '700 12px system-ui, sans-serif'; g.fillText('Kristina Huang', 24, 52);
+    g.fillStyle = '#6b7280'; g.font = '500 10px system-ui, sans-serif'; ['Home', 'Projects', 'Experience', 'Contact'].forEach((t, i) => g.fillText(t, 250 + i * 54, 52));
+    g.fillStyle = '#111827'; g.font = '700 26px system-ui, sans-serif'; g.fillText('Kristina Huang', 24, 100);
+    g.fillStyle = '#6b7280'; g.font = '400 11px system-ui, sans-serif'; g.fillText('Embedded systems \u00b7 PCB design \u00b7 firmware', 24, 120);
+    g.fillStyle = '#111827'; g.fillRect(24, 134, 86, 22);
+    [24, 172, 320].forEach(x => { g.strokeStyle = '#e5e7eb'; g.strokeRect(x, 176, 136, 74); g.fillStyle = '#d1d5db'; g.fillRect(x + 10, 188, 70, 7); g.fillRect(x + 10, 202, 110, 5); });
+    g.fillStyle = 'rgba(255,255,255,.6)'; g.fillRect(10, h - 20, w - 20, 14);
   });
+
   // curved gaming monitor: thin black bezel bent around the viewer, white back, a slim neck and a dark v-shaped foot
-  const R = 3.2, ARC = 1.6 / R, panelY = 0.98, frontZ = -0.04;
+  // a gentle curve, so the live page (which is flat) still sits flush on the glass when you zoom in
+  const R = 7, ARC = 1.6 / R, panelY = 0.98, frontZ = -0.04;
   const curved = (r, h, m, side) => {
     const g = new THREE.CylinderGeometry(r, r, h, 48, 1, true, Math.PI - ARC / 2, ARC);
     const mesh = new THREE.Mesh(g, m); mesh.position.set(0, panelY, frontZ + R); mesh.material.side = side ?? THREE.DoubleSide; mesh.castShadow = true; pcModern.add(mesh); return mesh;
@@ -1185,7 +1228,7 @@ function buildOffice() {
   [-1, 1].forEach(sx => { const leg = box(0.08, 0.025, 0.5, mat('#26262b', 0.4), sx * 0.15, 0.014, -0.08, pcModern, 0.012); leg.rotation.y = sx * 0.55; });
   box(0.16, 0.03, 0.16, mat('#26262b', 0.4), 0, 0.015, -0.28, pcModern, 0.02);
   // a flat stand-in the size of the screen's middle, where the live page is placed when you zoom in
-  const modernScr = screen(1.5, 0.84, site, 0, panelY, frontZ + 0.03, 0, pcModern); modernScr.visible = false;
+  const modernScr = screen(1.5, 0.84, site, 0, panelY, frontZ + 0.024, 0, pcModern); modernScr.visible = false;
   box(1.0, 0.025, 0.32, MW, -0.05, 0.012, 0.45, pcModern, 0.012);
   for (let r = 0; r < 4; r++) for (let c = 0; c < 14; c++) box(0.055, 0.012, 0.055, mat('#ffffff', 0.5), -0.5 + c * 0.066, 0.03, 0.34 + r * 0.068, pcModern, 0.008);
   ball(0.05, MW, 0.6, 0.03, 0.47, pcModern, 0.8, 0.45, 1.2);
@@ -2587,11 +2630,11 @@ const PORTFOLIO = {
     { id: 'panasonic-2025', role: 'Electrical Engineering Intern', org: 'Panasonic Avionics', when: 'Summer 2025', text: 'Details coming soon.' },
   ],
   projects: [
-    { id: 'rc-car', name: 'RC Car', text: 'An Ackermann-steering RC car on a two-deck chassis, with a custom controller PCB I’m designing for it.' },
-    { id: 'testbench', name: 'Seatback Testbench', text: 'A DIN-rail test fixture for airplane seatback displays, with relays, a PLC and an interface board.' },
-    { id: 'pingu', name: 'Pingu', text: 'A small haptic buzzer that goes off when Claude Code finishes or needs input. Raspberry Pi Pico + DRV2605L.' },
-    { id: 'ring-mouse', name: 'Ring Mouse', text: 'A finger-mounted Bluetooth mouse that uses an IMU and on-device gesture recognition.' },
-    { id: 'meetsync', name: 'MeetSync', text: 'A When2Meet-style scheduler with three levels of availability and a mobile-first design.' },
+    { id: 'rc-car', name: 'RC Car', tags: ['PCB design', 'Firmware', 'Robotics'], text: 'An Ackermann-steering RC car on a two-deck chassis, with a custom controller PCB I’m designing for it.' },
+    { id: 'testbench', name: 'Seatback Testbench', tags: ['Test engineering', 'PLC', 'Hardware'], text: 'A DIN-rail test fixture for airplane seatback displays, with relays, a PLC and an interface board.' },
+    { id: 'pingu', name: 'Pingu', tags: ['Embedded', 'Haptics', 'RP2040'], text: 'A small haptic buzzer that goes off when Claude Code finishes or needs input. Raspberry Pi Pico + DRV2605L.' },
+    { id: 'ring-mouse', name: 'Ring Mouse', tags: ['IMU', 'BLE', 'ML'], text: 'A finger-mounted Bluetooth mouse that uses an IMU and on-device gesture recognition.' },
+    { id: 'meetsync', name: 'MeetSync', tags: ['Web app', 'UX'], text: 'A When2Meet-style scheduler with three levels of availability and a mobile-first design.' },
   ],
   contact: [['GitHub', 'https://github.com/kristinauh'], ['Email', ''], ['LinkedIn', '']],
 };
@@ -2709,16 +2752,33 @@ $('#editor').addEventListener('click', () => tKey.focus());
 
 // the modern view: a plain portfolio website you click through
 const SITE = {
-  Home: m => { m.append(el('h1', '', `Hi, I’m ${PORTFOLIO.name.split(' ')[0]}.`), el('p', 'lead', PORTFOLIO.tagline), el('p', '', PORTFOLIO.about)); },
-  Experience: m => PORTFOLIO.experience.forEach(x => { const c = el('div', 'card'); c.append(el('h3', '', x.role), el('div', 'meta', `${x.org} · ${x.when}`), el('p', '', x.text)); m.append(c); }),
-  Projects: m => PORTFOLIO.projects.forEach(p => {
-    const c = el('div', 'card'); c.append(el('h3', '', p.name), el('p', '', p.text));
-    if (PROJECTS[p.id]) { const a = el('a', '', 'See it in the room →'); a.href = '#'; a.addEventListener('click', e => { e.preventDefault(); CMDS.open([p.id]); }); const pp = el('p'); pp.append(a); c.append(pp); }
-    m.append(c);
-  }),
-  Education: m => PORTFOLIO.education.forEach(x => { const c = el('div', 'card'); c.append(el('h3', '', x.school), el('div', 'meta', `${x.degree} · ${x.when}`)); m.append(c); }),
-  Contact: m => PORTFOLIO.contact.forEach(([k, v]) => { const c = el('div', 'card'); c.append(el('h3', '', k)); if (v) { const a = el('a', '', v.replace(/^https?:\/\//, '')); a.href = v; a.target = '_blank'; a.rel = 'noopener'; c.append(a); } else c.append(el('div', 'meta', 'Coming soon')); m.append(c); }),
+  Home: m => {
+    const hero = el('section', 'hero');
+    hero.append(el('p', 'eyebrow', 'Electrical & Computer Engineering \u00b7 Carnegie Mellon University'), el('h1', '', PORTFOLIO.name), el('p', 'lead', PORTFOLIO.about));
+    const cta = el('div', 'cta');
+    const primary = el('button', 'btn-p', 'View projects'); primary.type = 'button'; primary.addEventListener('click', () => showPage('Projects'));
+    const gh = el('a', 'btn-s', 'GitHub'); gh.href = PORTFOLIO.contact[0][1]; gh.target = '_blank'; gh.rel = 'noopener';
+    const ct = el('button', 'btn-s', 'Contact'); ct.type = 'button'; ct.addEventListener('click', () => showPage('Contact'));
+    cta.append(primary, gh, ct); hero.append(cta); m.append(hero);
+    m.append(el('h2', '', 'Selected work')); const grid = el('div', 'grid'); PORTFOLIO.projects.slice(0, 3).forEach(p => grid.append(projCard(p))); m.append(grid);
+  },
+  Projects: m => { m.append(el('h2', '', 'Projects')); const grid = el('div', 'grid'); PORTFOLIO.projects.forEach(p => grid.append(projCard(p))); m.append(grid); },
+  Experience: m => {
+    m.append(el('h2', '', 'Experience'));
+    PORTFOLIO.experience.forEach(x => { const r = el('div', 'tl'); const body = el('div'); body.append(el('h3', '', x.role), el('div', 'org', x.org), el('p', '', x.text)); r.append(el('div', 'when', x.when), body); m.append(r); });
+  },
+  Education: m => { m.append(el('h2', '', 'Education')); PORTFOLIO.education.forEach(x => { const r = el('div', 'tl'); const body = el('div'); body.append(el('h3', '', x.school), el('div', 'org', x.degree)); r.append(el('div', 'when', x.when), body); m.append(r); }); },
+  Contact: m => {
+    m.append(el('h2', '', 'Contact'), el('p', 'lead', 'The best way to reach me is below.'));
+    PORTFOLIO.contact.forEach(([k, v]) => { const r = el('div', 'tl'); const val = v ? el('a', '', v.replace(/^https?:\/\//, '')) : el('span', 'muted', 'Coming soon'); if (v) { val.href = v; val.target = '_blank'; val.rel = 'noopener'; } r.append(el('div', 'when', k), val); m.append(r); });
+  },
 };
+function projCard(p) {
+  const c = el('article', 'pcard'); c.append(el('h3', '', p.name), el('p', '', p.text));
+  const tags = el('div', 'tags'); (p.tags || []).forEach(t => tags.append(el('span', 'tag', t))); c.append(tags);
+  if (PROJECTS[p.id]) { const a = el('a', 'more', 'See it in the room \u2192'); a.href = '#'; a.addEventListener('click', e => { e.preventDefault(); CMDS.open([p.id]); }); c.append(a); }
+  return c;
+}
 function showPage(name) {
   $('#bUrl').textContent = 'kristinahuang.dev' + (name === 'Home' ? '' : '/' + name.toLowerCase());
   $('#bTabTitle').textContent = name === 'Home' ? PORTFOLIO.name : `${name} \u00b7 ${PORTFOLIO.name}`;
@@ -2726,7 +2786,7 @@ function showPage(name) {
   const m = $('#siteMain'); m.replaceChildren(); SITE[name](m); m.scrollTop = 0;
 }
 // built on first use, since the shared el() helper is defined further down
-function buildNav() { if ($('#siteNav').childElementCount) return; Object.keys(SITE).forEach(n => { const b = el('button', '', n); b.type = 'button'; b.addEventListener('click', () => showPage(n)); $('#siteNav').append(b); }); }
+function buildNav() { if ($('#siteNav').childElementCount) return; $('#siteNav').append(el('span', 'brand', PORTFOLIO.name)); Object.keys(SITE).forEach(n => { const b = el('button', '', n); b.type = 'button'; b.addEventListener('click', () => showPage(n)); $('#siteNav').append(b); }); }
 
 function showComputer(mode) {
   setPcMode(mode);
