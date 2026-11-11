@@ -2555,7 +2555,7 @@ function playRecord(sleeve) {
   if (same) return;
   const al = sleeve.userData.album;
   // the sleeve comes out and turns to show its cover, then the vinyl slides out the top and flies to the platter
-  const show = new THREE.Vector3(0, 1.3, 1.0);
+  const show = new THREE.Vector3(0, 1.3, 1.15);
   const disc = makeDisc(al); disc.visible = false; V.rc.add(disc); V.disc = disc;
   const to = new THREE.Vector3(V.platter.position.x, V.tt.position.y + V.platter.position.y + 0.04, V.platter.position.z);
   const path = new THREE.CatmullRomCurve3([new THREE.Vector3(show.x, show.y + 0.78, show.z), new THREE.Vector3((show.x + to.x) / 2, 2.95, 0.75),
@@ -2588,9 +2588,12 @@ TICKS.push({ room: 'office', fn: t => {
   if (A) {
     A.t += dt;
     const s = A.sleeve, home = s.userData.home, D = A.disc;
-    // out and around to face you, hold, then back into its slot once the record has left
-    const back = cl((A.t - 2.6) / 0.8), u = A.t < 2.6 ? ease(cl(A.t / 0.7)) : 1 - ease(back);
-    s.position.lerpVectors(home, A.show, u); s.rotation.y = -Math.PI / 2 * u; s.scale.setScalar(1 + 0.3 * u);
+    // slide straight out until it clears the cabinet, then turn to face you; going back is the same in reverse
+    const front = A.front || (A.front = new THREE.Vector3(home.x, home.y, A.show.z));
+    const out = A.t < 2.6 ? ease(cl(A.t / 0.5)) : 1 - ease(cl((A.t - 3.1) / 0.45));
+    const u = A.t < 2.6 ? ease(cl((A.t - 0.5) / 0.55)) : 1 - ease(cl((A.t - 2.6) / 0.5));
+    if (u > 0) s.position.lerpVectors(front, A.show, u); else s.position.lerpVectors(home, front, out);
+    s.rotation.y = -Math.PI / 2 * u; s.scale.setScalar(1 + 0.3 * u);
     if (A.t < 2.2) {
       D.visible = A.t > 1.4; D.rotation.set(Math.PI / 2, 0, 0);
       D.position.set(A.show.x, A.show.y + 0.78 * ease(cl((A.t - 1.4) / 0.8)), A.show.z);
