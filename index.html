@@ -422,7 +422,7 @@ body.public #panel .list input { pointer-events: none; }
 #panel .row { padding: 4px 18px 12px; }
 #panel .tabs { align-self: stretch; margin: 0; padding: 0 18px; gap: 4px; background: none; border: 0; border-bottom: 1px solid rgba(150, 225, 255, .25); border-radius: 0; box-shadow: none; }
 #panel .tabs button { background: none; border: 0; border-bottom: 2px solid transparent; box-shadow: none; border-radius: 0; padding: 10px 8px; }
-#panel .tabs button.on { border-bottom-color: #ff9cc0; box-shadow: none; }
+#panel .tabs button.on { border-bottom-color: #ff9cc0; box-shadow: none; background: none; }
 #panel .pane.on { padding: 16px 18px 20px; }
 #panel:not(.open) { transform: translateX(calc(100% + 40px)); }
 @media (max-width: 640px) { #panel { width: min(340px, calc(100% - 24px)); } }
@@ -1332,11 +1332,12 @@ function buildOffice() {
   box(0.03, 0.02, 0.85, LED, 0.36, 6.05, 0, bc, 0);
 
   // home hub: a rounded squircle screen beside the door, showing a floor plan of the house
+  // circular corners, so the shell, glass and screen stay concentric (same centre, radius shrinking by the inset)
   const roundRect = (w, h, r) => {
-    const sh = new THREE.Shape();
-    sh.moveTo(-w / 2 + r, -h / 2); sh.lineTo(w / 2 - r, -h / 2); sh.quadraticCurveTo(w / 2, -h / 2, w / 2, -h / 2 + r);
-    sh.lineTo(w / 2, h / 2 - r); sh.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2); sh.lineTo(-w / 2 + r, h / 2);
-    sh.quadraticCurveTo(-w / 2, h / 2, -w / 2, h / 2 - r); sh.lineTo(-w / 2, -h / 2 + r); sh.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2);
+    const sh = new THREE.Shape(), x = w / 2 - r, y = h / 2 - r;
+    sh.moveTo(-x, -h / 2); sh.lineTo(x, -h / 2); sh.absarc(x, -y, r, -Math.PI / 2, 0);
+    sh.lineTo(w / 2, y); sh.absarc(x, y, r, 0, Math.PI / 2); sh.lineTo(-x, h / 2);
+    sh.absarc(-x, y, r, Math.PI / 2, Math.PI); sh.lineTo(-w / 2, -y); sh.absarc(-x, -y, r, Math.PI, Math.PI * 1.5);
     return sh;
   };
   // the hub screen shows a top-down floor plan of the house: dark backdrop, slate cutaway walls,
@@ -1411,7 +1412,7 @@ function buildOffice() {
   const hubShell = new THREE.Mesh(new THREE.ExtrudeGeometry(roundRect(1.12, 1.12, 0.3), { depth: 0.05, bevelEnabled: true, bevelThickness: 0.025, bevelSize: 0.025, bevelSegments: 6, curveSegments: 24 }), mat('#f4f1f3', 0.35, 0.3));
   hubShell.position.z = 0.025; hubShell.castShadow = true; hubFace.add(hubShell);
   const hubGlass = new THREE.Mesh(new THREE.ShapeGeometry(roundRect(1.04, 1.04, 0.26), 24), mat('#141214', 0.2)); hubGlass.position.z = 0.102; hubFace.add(hubGlass);
-  const hubMask = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#000'; g.fillRect(0, 0, w, h); g.fillStyle = '#fff'; g.beginPath(); g.roundRect(0, 0, w, h, 62); g.fill(); });
+  const hubMask = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#000'; g.fillRect(0, 0, w, h); g.fillStyle = '#fff'; g.beginPath(); g.roundRect(0, 0, w, h, 57); g.fill(); });
   const hubUI = canvasTex(512, 512, (g, w, h) => {
     const bg = g.createLinearGradient(0, 0, w, h); bg.addColorStop(0, '#242233'); bg.addColorStop(1, '#101118'); g.fillStyle = bg; g.fillRect(0, 0, w, h);
     // inset the layout so nothing reaches the rounded corners
