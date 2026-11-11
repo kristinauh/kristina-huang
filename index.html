@@ -476,7 +476,9 @@ body.public #panel .list input { pointer-events: none; }
 #siteMain .muted { color: #9ca3af; }
 
 /* flex children only scroll if they're allowed to shrink below their content */
-#siteMain, #term, #edBody, .browser, .browser #site { min-height: 0; }
+#os, #editor, #siteMain, #term, #edBody, .browser, .browser #site { min-height: 0; }
+#siteMain { overscroll-behavior: contain; }
+.taskbar { flex: none; }
 #computer, #computer * { pointer-events: auto; }
 </style>
 
