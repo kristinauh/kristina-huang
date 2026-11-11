@@ -474,6 +474,10 @@ body.public #panel .list input { pointer-events: none; }
 #siteMain .tl p { margin: 6px 0 0; color: #4b5563; font-size: 14px; }
 #siteMain .tl a { color: #2563eb; font-weight: 600; text-decoration: none; }
 #siteMain .muted { color: #9ca3af; }
+
+/* flex children only scroll if they're allowed to shrink below their content */
+#siteMain, #term, #edBody, .browser, .browser #site { min-height: 0; }
+#computer, #computer * { pointer-events: auto; }
 </style>
 
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGcgZmlsbD0iI2U0ZTZlYyI+CiAgICA8cmVjdCB4PSIyIiB5PSIxMyIgd2lkdGg9IjkiIGhlaWdodD0iNSIgcng9IjEuNSIvPjxyZWN0IHg9IjIiIHk9IjIzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+PHJlY3QgeD0iMiIgeT0iMzMiIHdpZHRoPSI5IiBoZWlnaHQ9IjUiIHJ4PSIxLjUiLz48cmVjdCB4PSIyIiB5PSI0MyIgd2lkdGg9IjkiIGhlaWdodD0iNSIgcng9IjEuNSIvPgogICAgPHJlY3QgeD0iNTMiIHk9IjEzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+PHJlY3QgeD0iNTMiIHk9IjIzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+PHJlY3QgeD0iNTMiIHk9IjMzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+PHJlY3QgeD0iNTMiIHk9IjQzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+CiAgPC9nPgogIDxyZWN0IHg9IjgiIHk9IjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI1NCIgcng9IjgiIGZpbGw9IiNkOTcyOWEiLz4KICA8cmVjdCB4PSI4IiB5PSI1IiB3aWR0aD0iNDgiIGhlaWdodD0iNTAiIHJ4PSI4IiBmaWxsPSIjZjI5YmJkIi8+CiAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxMyIgcj0iMyIgZmlsbD0iI2Q5NzI5YSIvPgogIDxwYXRoIGQ9Ik0xOSAyNCBWMzkgTTE5IDMzIEwyNyAyNCBNMjIuNSAzMCBMMjggMzkgTTM0IDI0IFYzOSBNNDUgMjQgVjM5IE0zNCAzMS41IEg0NSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmNmY5IiBzdHJva2Utb3BhY2l0eT0iLjkyIiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InNxdWFyZSIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIvPgogIDxwYXRoIGQ9Ik0xOSA0NSBIMjYgTTI5IDQ1IEgzMyBNMzYgNDUgSDQ1IiBzdHJva2U9IiNmZmY2ZjkiIHN0cm9rZS1vcGFjaXR5PSIuNTUiIHN0cm9rZS13aWR0aD0iMS42Ii8+Cjwvc3ZnPgo=">
@@ -2387,13 +2391,14 @@ function overviewPos(out) {
 }
 function updateGoal() {
   if (!current) { goal.target.copy(ROOMS[room].center); overviewPos(goal.pos); return; }
-  if (PROJECTS[current]?.computer) { goal.pos.copy(goal.base); return; }
   // nudge the camera in its own plane toward the pointer
   fwd.subVectors(goal.target, goal.base).normalize();
   right.crossVectors(fwd, camera.up).normalize();
   up.crossVectors(right, fwd).normalize();
   const d = goal.base.distanceTo(goal.target);
-  goal.pos.copy(goal.base).addScaledVector(right, pointer.x * d * 0.12).addScaledVector(up, pointer.y * d * 0.07);
+  // a gentler drift at the computer, so the screen stays easy to read
+  const amt = PROJECTS[current]?.computer ? 0.5 : 1;
+  goal.pos.copy(goal.base).addScaledVector(right, pointer.x * d * 0.12 * amt).addScaledVector(up, pointer.y * d * 0.07 * amt);
 }
 
 // the control room is dimmer so its screens carry the light
