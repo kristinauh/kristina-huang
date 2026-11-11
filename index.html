@@ -964,7 +964,7 @@ const haloTex = canvasTex(128, 128, (g, w, h) => {
   g.fillStyle = r; g.fillRect(0, 0, w, h);
 });
 // which computer sits on the office desk: the retro orange terminal or a modern monitor with the portfolio site
-let PC = null, pcMode = 'retro';
+let PC = null, pcMode = 'retro', VINYL = null;
 try { pcMode = localStorage.getItem('pcMode') === 'modern' ? 'modern' : 'retro'; } catch {}
 function setPcMode(m) {
   pcMode = m; try { localStorage.setItem('pcMode', m); } catch {}
@@ -1070,31 +1070,82 @@ function buildOffice() {
   const lampGlow = new THREE.PointLight('#ffa448', 26, 12, 1.2); lampGlow.position.y = 4.8; fl.add(lampGlow);
   amber.emissiveIntensity = 1.6; halo('#ffb25a', 2.2, 0, 4.85, 0, fl, 0.4);
 
-  // walnut record cabinet with a turntable and smoked dust cover, facing the desk
+  // walnut record cabinet: two doors that swing open onto shelves of records, with strip lights inside,
+  // and a turntable on top whose tonearm swings over when a record is put on
   const rc = new THREE.Group(); rc.position.set(4.7, 0, 0.3); rc.rotation.y = -Math.PI / 2; ROOT.add(rc);
+  const INNER = mat('#3a2418', 0.8);
   box(2.3, 0.08, 1.05, '#2a2022', 0, 0.06, -0.02, rc, 0.02);
-  box(2.4, 2.0, 1.15, WALNUT, 0, 1.1, 0, rc, 0.03);
-  [-0.59, 0.59].forEach(x => {
-    box(1.16, 1.84, 0.03, WALNUT, x, 1.1, 0.58, rc, 0.015);
-    cyl(0.045, 0.045, 0.02, '#1a1415', x + (x < 0 ? 0.42 : -0.42), 1.75, 0.6, rc, 20).rotation.x = Math.PI / 2;
+  box(2.4, 2.0, 0.04, WALNUT, 0, 1.1, -0.555, rc, 0.01);
+  box(2.3, 1.9, 0.01, INNER, 0, 1.1, -0.53, rc, 0);
+  [-1.175, 1.175].forEach(x => box(0.05, 2.0, 1.15, WALNUT, x, 1.1, 0, rc, 0.015));
+  box(2.4, 0.05, 1.15, WALNUT, 0, 2.075, 0, rc, 0.015);
+  box(2.4, 0.06, 1.15, WALNUT, 0, 0.13, 0, rc, 0.015);
+  box(2.3, 0.04, 1.08, WALNUT, 0, 1.1, 0, rc, 0.01);
+  box(0.04, 1.9, 1.08, WALNUT, 0, 1.1, 0, rc, 0.01);
+  // records: sleeves standing spine-out in all four cubbies, each one a different album
+  const ALBUMS = [
+    { title: 'Late Night Jazz', c: ['#1f3b57', '#e8c27a'], bpm: 84, root: 50, wave: 'triangle', prog: [0, 5, 3, 7] },
+    { title: 'City Pop Drive', c: ['#f29bbd', '#7fd3c8'], bpm: 104, root: 55, wave: 'sawtooth', prog: [0, 4, 5, 3] },
+    { title: 'Lo-fi Study', c: ['#a9b79a', '#f4efe6'], bpm: 76, root: 53, wave: 'sine', prog: [0, 3, 5, 4] },
+    { title: 'Film Scores', c: ['#2a2624', '#c8455a'], bpm: 70, root: 48, wave: 'triangle', prog: [0, 8, 5, 7] },
+    { title: 'Bossa Mornings', c: ['#e8702a', '#fff1d6'], bpm: 96, root: 57, wave: 'sine', prog: [0, 2, 5, 7] },
+    { title: 'Synth Dreams', c: ['#5b4a9e', '#ff9cc0'], bpm: 110, root: 52, wave: 'square', prog: [0, 5, 7, 3] },
+    { title: 'Piano Rain', c: ['#d8dde2', '#3b4a5a'], bpm: 66, root: 60, wave: 'sine', prog: [0, 9, 5, 7] },
+    { title: 'Funk Kitchen', c: ['#c8a13a', '#2b2b30'], bpm: 112, root: 45, wave: 'sawtooth', prog: [0, 0, 5, 7] },
+  ];
+  const records = [];
+  [[-1, 0.16], [1, 0.16], [-1, 1.12], [1, 1.12]].forEach(([side, y0], cub) => {
+    const n = 14;
+    for (let i = 0; i < n; i++) {
+      const al = ALBUMS[(i + cub * 3) % ALBUMS.length];
+      const cover = canvasTex(64, 64, (g, w, h) => { g.fillStyle = al.c[0]; g.fillRect(0, 0, w, h); g.fillStyle = al.c[1]; g.fillRect(0, h * 0.62, w, 8); g.beginPath(); g.arc(w * 0.7, h * 0.32, 12, 0, 7); g.fill(); });
+      const spine = canvasTex(8, 64, (g, w, h) => { g.fillStyle = al.c[0]; g.fillRect(0, 0, w, h); g.fillStyle = al.c[1]; g.fillRect(0, h * 0.2, w, h * 0.35); });
+      const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.6, 0.6), [texMat(cover, 0.7), texMat(cover, 0.7), mat(al.c[0], 0.7), mat(al.c[0], 0.7), texMat(spine, 0.7), mat(al.c[0], 0.7)]);
+      const x = side * (0.08 + i * 0.072);
+      sleeve.position.set(x, y0 + 0.31, -0.18); sleeve.rotation.z = side * 0.04 * (i % 3 - 1);
+      sleeve.castShadow = true; sleeve.userData = { album: al, home: sleeve.position.clone() }; rc.add(sleeve); records.push(sleeve);
+    }
   });
+  // warm strip lights under the top of each cubby, off until the doors open
+  const strips = [], stripLights = [];
+  [[-0.58, 1.06], [0.58, 1.06], [-0.58, 2.03], [0.58, 2.03]].forEach(([x, y]) => {
+    const s = box(1.05, 0.015, 0.03, new THREE.MeshBasicMaterial({ color: '#ffcf8f', toneMapped: false }), x, y, 0.45, rc, 0); s.visible = false; strips.push(s);
+    const l = new THREE.PointLight('#ffc98a', 0, 2.2, 1.6); l.position.set(x, y - 0.2, 0.3); rc.add(l); stripLights.push(l);
+  });
+  // doors on hinges at the outer edges
+  const doors = [-1, 1].map(side => {
+    const h = new THREE.Group(); h.position.set(side * 1.17, 0, 0.575); rc.add(h);
+    box(1.16, 1.84, 0.03, WALNUT, -side * 0.585, 1.1, 0.015, h, 0.015);
+    cyl(0.045, 0.045, 0.02, '#1a1415', -side * 1.01, 1.75, 0.04, h, 20).rotation.x = Math.PI / 2;
+    return h;
+  });
+  // turntable
   const tt = new THREE.Group(); tt.position.y = 2.1; rc.add(tt);
   box(1.45, 0.2, 1.05, WALNUT, 0, 0.1, 0, tt, 0.025);
   box(1.38, 0.02, 0.98, mat('#cfcfd2', 0.3, 0.8), 0, 0.21, 0, tt, 0.005);
-  cyl(0.4, 0.4, 0.05, mat('#d8d8db', 0.25, 0.9), -0.16, 0.245, 0, tt, 48);
-  cyl(0.37, 0.37, 0.012, mat('#131213', 0.35), -0.16, 0.276, 0, tt, 48);
-  cyl(0.11, 0.11, 0.004, mat('#e07a3a', 0.6), -0.16, 0.284, 0, tt, 32);
+  const platter = new THREE.Group(); platter.position.set(-0.16, 0.245, 0); tt.add(platter);
+  cyl(0.4, 0.4, 0.05, mat('#d8d8db', 0.25, 0.9), 0, 0, 0, platter, 48);
+  cyl(0.37, 0.37, 0.012, mat('#131213', 0.35), 0, 0.031, 0, platter, 48);
+  for (let i = 0; i < 12; i++) box(0.012, 0.003, 0.05, mat('#9a9aa0', 0.3, 0.8), Math.cos(i / 12 * 6.283) * 0.385, 0.026, Math.sin(i / 12 * 6.283) * 0.385, platter, 0).rotation.y = -i / 12 * 6.283;
+  cyl(0.012, 0.012, 0.05, mat('#cfcfd2', 0.2, 0.9), 0, 0.05, 0, platter, 12);
   cyl(0.06, 0.06, 0.08, mat('#cfcfd2', 0.2, 0.9), 0.5, 0.26, -0.3, tt, 20);
-  const arm = box(0.025, 0.025, 0.62, mat('#e8e8ea', 0.15, 1), 0.38, 0.31, -0.02, tt, 0.01); arm.rotation.y = 0.3;
-  box(0.06, 0.03, 0.09, '#222', 0.28, 0.3, 0.28, tt, 0.01);
+  // the tonearm pivots on its base: rest points toward the front, play swings it over the record
+  const armPivot = new THREE.Group(); armPivot.position.set(0.5, 0.31, -0.3); tt.add(armPivot);
+  box(0.022, 0.022, 0.6, mat('#e8e8ea', 0.15, 1), 0, 0, 0.3, armPivot, 0.01);
+  box(0.06, 0.03, 0.09, '#222', 0, -0.01, 0.6, armPivot, 0.01);
+  cyl(0.035, 0.035, 0.08, mat('#3a3a3e', 0.4, 0.6), 0, 0, -0.08, armPivot, 14).rotation.x = Math.PI / 2;
+  box(0.04, 0.05, 0.03, mat('#cfcfd2', 0.2, 0.9), 0.5, 0.26, 0.32, tt, 0.01);
   [-0.55, -0.42].forEach(x => cyl(0.03, 0.03, 0.03, mat('#cfcfd2', 0.2, 0.9), x, 0.13, 0.52, tt, 16).rotation.x = Math.PI / 2);
   box(0.28, 0.05, 0.01, mat('#cfcfd2', 0.2, 0.9), 0.4, 0.1, 0.53, tt, 0);
+  const ttLed = box(0.03, 0.02, 0.01, new THREE.MeshBasicMaterial({ color: '#3a2a2a', toneMapped: false }), 0.6, 0.1, 0.53, tt, 0);
   // shallow smoked lid, hinged at the back and propped open
   const hinge = new THREE.Group(); hinge.position.set(0, 0.22, -0.52); hinge.rotation.x = -1.25; tt.add(hinge);
   const cover = new THREE.Mesh(new RoundedBoxGeometry(1.45, 0.13, 1.05, 2, 0.02),
     new THREE.MeshStandardMaterial({ color: '#3b2a22', roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.32, depthWrite: false, envMapIntensity: 1 }));
   cover.position.set(0, 0.065, 0.525); hinge.add(cover);
   [-0.5, 0.5].forEach(x => box(0.08, 0.05, 0.06, mat('#cfcfd2', 0.2, 0.9), x, 0.22, -0.52, tt, 0.01));
+  VINYL = { rc, doors, strips, stripLights, records, tt, platter, armPivot, ttLed, open: false, playing: null, disc: null, anim: null, armTarget: 0, lift: 0 };
+  projects['records'] = { group: rc, object: 'Record cabinet', focus: [4.4, 1.6, 0.3], view: [-3.2, 2.5, 0.9], normal: [-1, 0, 0], noPanel: true };
 
   oliveTree(4.4, -2.5, 1.05);
 
@@ -2327,7 +2378,7 @@ ROOT = scene;
 let room = 'office';
 ROOMS.office.group.visible = true;
 applyLight();
-const NAMES = { 'home-hub': 'Home Hub', 'rank-everything': 'Rank Everything', 'pingu': 'Pingu', 'outfit-app': 'Outfit App', school: 'School', work: 'Work', 'rc-car': 'RC Car', testbench: 'Seatback Testbench', computer: 'Computer' };
+const NAMES = { 'home-hub': 'Home Hub', 'rank-everything': 'Rank Everything', 'pingu': 'Pingu', 'outfit-app': 'Outfit App', school: 'School', work: 'Work', 'rc-car': 'RC Car', testbench: 'Seatback Testbench', computer: 'Computer', records: 'Records' };
 
 // picking: projects and doors in the room that's showing
 Object.entries(PROJECTS).forEach(([id, p]) => { p.group.userData.pid = id; p.scale = 1; p.baseScale = p.group.scale.x; });
@@ -2343,6 +2394,124 @@ function pick(e) {
   }
   return null;
 }
+
+// records: pick a sleeve, slide the vinyl out and over onto the platter, swing the tonearm across and play
+function pickRecord(e) {
+  if (!VINYL || !VINYL.open) return null;
+  const r = canvas.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
+  return ray.intersectObjects(VINYL.records, false)[0]?.object || null;
+}
+let AC = null, music = null;
+function startMusic(al) {
+  stopMusic();
+  try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); } catch { return; }
+  const out = AC.createGain(); out.gain.value = 0; out.connect(AC.destination);
+  out.gain.linearRampToValueAtTime(0.16, AC.currentTime + 1.2);
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2400; lp.connect(out);
+  // vinyl crackle
+  const nb = AC.createBuffer(1, AC.sampleRate * 2, AC.sampleRate), nd = nb.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) nd[i] = Math.random() < 0.0009 ? (Math.random() - 0.5) * 0.9 : (Math.random() - 0.5) * 0.012;
+  const crackle = AC.createBufferSource(); crackle.buffer = nb; crackle.loop = true; crackle.connect(out); crackle.start();
+  const hz = n => 440 * Math.pow(2, (n - 69) / 12);
+  const beat = 60 / al.bpm; let next = AC.currentTime + 0.3, step = 0;
+  const note = (n, t, dur, vol, wave) => {
+    const o = AC.createOscillator(), g = AC.createGain(); o.type = wave; o.frequency.value = hz(n);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.03); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+    o.connect(g); g.connect(lp); o.start(t); o.stop(t + dur + 0.05);
+  };
+  const kick = t => { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+    g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25); o.connect(g); g.connect(lp); o.start(t); o.stop(t + 0.3); };
+  const scale = [0, 2, 3, 5, 7, 9, 10, 12];
+  const timer = setInterval(() => {
+    while (next < AC.currentTime + 0.4) {
+      const bar = Math.floor(step / 8), chord = al.root + al.prog[bar % al.prog.length], t = next;
+      if (step % 8 === 0) [0, 3 + (chord % 2), 7, 10].forEach(i => note(chord + i, t, beat * 4.2, 0.05, al.wave === 'square' ? 'triangle' : al.wave));
+      if (step % 2 === 0) note(chord - 12, t, beat * 0.9, 0.12, 'sine');
+      if (step % 4 === 0) kick(t);
+      if (Math.random() < 0.55) note(chord + 12 + scale[(step * 3 + bar) % scale.length], t, beat * 0.6, 0.045, al.wave);
+      next += beat / 2; step++;
+    }
+  }, 100);
+  music = { out, timer, crackle };
+}
+function stopMusic() {
+  if (!music) return;
+  const m = music; music = null; clearInterval(m.timer);
+  try { m.out.gain.cancelScheduledValues(AC.currentTime); m.out.gain.setValueAtTime(m.out.gain.value, AC.currentTime); m.out.gain.linearRampToValueAtTime(0, AC.currentTime + 0.6); } catch {}
+  setTimeout(() => { try { m.crackle.stop(); m.out.disconnect(); } catch {} }, 800);
+}
+function makeDisc(al) {
+  const label = canvasTex(128, 128, (g, w, h) => { g.fillStyle = al.c[1]; g.beginPath(); g.arc(w / 2, h / 2, w / 2, 0, 7); g.fill();
+    g.fillStyle = al.c[0]; g.fillRect(0, h * 0.58, w, 10); g.fillStyle = '#111'; g.beginPath(); g.arc(w / 2, h / 2, 4, 0, 7); g.fill(); });
+  const d = new THREE.Group();
+  const vinyl = cyl(0.36, 0.36, 0.008, mat('#0c0b0c', 0.25, 0.2), 0, 0, 0, d, 48);
+  for (let r = 0.16; r < 0.35; r += 0.035) { const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.0015, 4, 64), mat('#232124', 0.15, 0.4)); ring.rotation.x = Math.PI / 2; ring.position.y = 0.0045; d.add(ring); }
+  const lab = new THREE.Mesh(new THREE.CircleGeometry(0.11, 40), texMat(label, 0.6)); lab.rotation.x = -Math.PI / 2; lab.position.y = 0.0045; d.add(lab);
+  d.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  return d;
+}
+function playRecord(sleeve) {
+  const V = VINYL; if (V.anim) return;
+  const same = V.playing === sleeve;
+  stopRecord(true);
+  if (same) return;
+  const al = sleeve.userData.album;
+  const disc = makeDisc(al); V.rc.add(disc); V.disc = disc;
+  // slide straight out of the cubby, rise in front of the cabinet while turning flat, then drop onto the spindle
+  const from = sleeve.position.clone().add(new THREE.Vector3(0, 0.03, 0.3));
+  const to = new THREE.Vector3(V.platter.position.x, V.tt.position.y + V.platter.position.y + 0.04, V.platter.position.z);
+  const path = new THREE.CatmullRomCurve3([from, new THREE.Vector3(from.x, from.y + 0.02, 1.05), new THREE.Vector3((from.x + to.x) / 2, 2.75, 1.0),
+    new THREE.Vector3(to.x, to.y + 0.38, to.z + 0.25), new THREE.Vector3(to.x, to.y + 0.12, to.z), to], false, 'centripetal');
+  disc.position.copy(from); disc.rotation.set(0, 0, Math.PI / 2);
+  V.playing = sleeve; V.anim = { t: 0, sleeve, disc, path, to, al };
+  startMusic.pending = al;
+  // unlock audio inside the click itself so browsers allow it
+  try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); } catch {}
+}
+function stopRecord(quick) {
+  const V = VINYL; if (!V) return;
+  stopMusic(); V.armTarget = 0; V.anim = null;
+  if (V.playing) { V.playing.position.copy(V.playing.userData.home); V.playing = null; }
+  if (V.disc) { V.rc.remove(V.disc); V.disc = null; }
+  V.ttLed.material.color.set('#3a2a2a');
+}
+const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+let vinylLast = 0;
+TICKS.push({ room: 'office', fn: t => {
+  const V = VINYL; if (!V) return;
+  const dt = Math.min(0.05, t - (vinylLast || t)); vinylLast = t;
+  // doors and strip lights
+  const k = 1 - Math.exp(-dt * 6);
+  V.doors.forEach((d, i) => { d.rotation.y += ((V.open ? (i ? 1.9 : -1.9) : 0) - d.rotation.y) * k; });
+  const lit = V.open ? 1 : 0; V.lightK = (V.lightK || 0) + (lit - (V.lightK || 0)) * k;
+  V.strips.forEach(s => s.visible = V.lightK > 0.05);
+  V.stripLights.forEach(l => l.intensity = V.lightK * 1.6);
+  V.records.forEach(r => { if (r === V.playing) return; const tz = r.userData.home.z + (r.userData.hover ? 0.12 : 0); r.position.z += (tz - r.position.z) * k * 1.5; });
+  // record animation: sleeve slides out, vinyl lifts free, arcs up and lands on the platter
+  const A = V.anim;
+  if (A) {
+    A.t += dt;
+    const s = A.sleeve, home = s.userData.home;
+    if (A.t < 0.5) s.position.z = home.z + 0.35 * ease(A.t / 0.5);
+    const u = Math.min(1, Math.max(0, (A.t - 0.4) / 2.2)), e = ease(u);
+    A.path.getPoint(e, A.disc.position);
+    A.disc.rotation.z = (Math.PI / 2) * (1 - ease(Math.min(1, Math.max(0, (e - 0.2) / 0.35))));
+    if (A.t > 1.0 && A.t < 2.0) s.position.z += ((home.z) - s.position.z) * k;
+    if (u >= 1 && !A.landed) { A.landed = true; s.position.copy(home); A.disc.rotation.set(0, 0, 0); A.disc.position.copy(A.to); V.armTarget = -0.72; A.armAt = A.t; }
+    if (A.landed && A.t - A.armAt > 1.1) { startMusic(A.al); V.ttLed.material.color.set('#ff5a4a'); V.anim = null; }
+  }
+  // tonearm: swings across, lifted while moving, then lowers onto the groove
+  const ar = V.armPivot, moving = Math.abs(V.armTarget - ar.rotation.y) > 0.02;
+  ar.rotation.y += (V.armTarget - ar.rotation.y) * (1 - Math.exp(-dt * 2.6));
+  V.lift += ((moving ? 1 : 0) - V.lift) * (1 - Math.exp(-dt * 8));
+  ar.rotation.x = -0.05 * V.lift;
+  // spin and slow creep of the arm toward the label while playing
+  const spinning = V.disc && (V.playing && !V.anim);
+  V.spin = (V.spin || 0) + ((spinning ? 3.5 : 0) - (V.spin || 0)) * (1 - Math.exp(-dt * 2));
+  V.platter.rotation.y -= V.spin * dt;
+  if (V.disc && !V.anim) { V.disc.rotation.y -= V.spin * dt; if (spinning) V.armTarget = Math.max(-0.95, V.armTarget - dt * 0.002); }
+}});
 
 // camera: slow full turn around the room in overview, eases in to a project and follows the pointer there
 const cam = { pos: new THREE.Vector3(9, 8, 14), target: ROOMS.office.center.clone(), offX: 0, offY: 0 };
@@ -2382,8 +2551,8 @@ function setGoal(pid) {
   // pull back a little on phones, but not so far the camera ends up behind the desk
   const portrait = camera.aspect < 1 ? Math.min(1.25, Math.max(1, 0.7 / camera.aspect)) : 1;
   goal.base.set(...p.view).multiplyScalar(portrait).add(goal.target);
-  goal.offX = isSheet() || p.computer ? 0 : 228;
-  goal.offY = isSheet() && !p.computer ? H * 0.32 : 0;
+  goal.offX = isSheet() || p.computer || p.noPanel ? 0 : 228;
+  goal.offY = isSheet() && !p.computer && !p.noPanel ? H * 0.32 : 0;
 }
 const right = new THREE.Vector3(), up = new THREE.Vector3(), fwd = new THREE.Vector3();
 function overviewPos(out) {
@@ -2421,6 +2590,7 @@ function applyLight() {
 const fade = $('#fade');
 let switching = false;
 function goRoom(id, via) {
+  if (id !== 'office') stopRecord();
   if (switching || id === room) return;
   switching = true;
   if (current) close();
@@ -2484,7 +2654,9 @@ addEventListener('pointermove', e => {
   }
   if (e.pointerType === 'mouse' && e.target === canvas) {
     hovered = pick(e);
-    canvas.style.cursor = hovered ? 'pointer' : down?.moved ? 'grabbing' : 'grab';
+    const rec = current === 'records' ? pickRecord(e) : null;
+    if (VINYL) VINYL.records.forEach(r => r.userData.hover = r === rec);
+    canvas.style.cursor = hovered || rec ? 'pointer' : down?.moved ? 'grabbing' : 'grab';
   }
 });
 addEventListener('pointerup', e => {
@@ -2492,6 +2664,7 @@ addEventListener('pointerup', e => {
   const moved = down.moved; down = null;
   if (moved || e.target !== canvas) return;
   if (current === 'computer') return close();
+  if (current === 'records') { const r = pickRecord(e); if (r) return playRecord(r); }
   const hit = pick(e);
   if (hit?.startsWith('door:')) {
     const to = hit.slice(5);
@@ -2519,7 +2692,7 @@ function frame() {
   if (Math.abs(cam.offX) + Math.abs(cam.offY) > 0.5) camera.setViewOffset(W, H, cam.offX, cam.offY, W, H);
   else camera.clearViewOffset();
   for (const [id, p] of Object.entries(PROJECTS)) {
-    const target = hovered === id && current !== id && !p.computer ? 1.04 : 1;
+    const target = hovered === id && current !== id && !p.computer && !p.noPanel ? 1.04 : 1;
     p.scale += (target - p.scale) * (reduced ? 1 : 1 - Math.exp(-dt * 12));
     p.group.scale.setScalar(p.scale * p.baseScale);
   }
@@ -2618,6 +2791,7 @@ const panel = $('#panel');
 // objects that would block a close-up are hidden while it's open
 const setHidden = (pid, hidden) => (PROJECTS[pid]?.hide || []).forEach(o => { o.visible = !hidden; });
 function open(pid) {
+  if (PROJECTS[pid].noPanel) { if (current && current !== pid) close(); current = pid; hovered = null; $('#labels').classList.add('hide'); setGoal(pid); VINYL.open = true; return; }
   if (PROJECTS[pid].computer) { if (current && current !== pid) close(); current = pid; hovered = null; $('#labels').classList.add('hide'); canvas.style.pointerEvents = 'none'; showComputer(pcMode); return; }
   if (current) setHidden(current, false);
   setHidden(pid, true);
@@ -2627,6 +2801,7 @@ function open(pid) {
   setGoal(pid); subChat(pid); renderPanel(); renderChat();
 }
 function close() {
+  if (current === 'records') { VINYL.open = false; VINYL.records.forEach(r => r.userData.hover = false); }
   if (current === 'computer') { canvas.style.pointerEvents = ''; $('#termKey').blur(); }
   if (current) setHidden(current, false);
   current = null;
@@ -2722,7 +2897,7 @@ const CMDS = {
   startx: () => { tPrint('starting graphical session…', 'dim'); setTimeout(() => showComputer('modern'), 400); },
   open: a => {
     const id = (a[0] || '').replace(/\.md$/, ''), p = PROJECTS[id];
-    if (!p || p.computer) return tPrint(`open: ${a[0] || ''}: no such project. try ls projects`);
+    if (!p || p.computer || p.noPanel) return tPrint(`open: ${a[0] || ''}: no such project. try ls projects`);
     closeComputer();
     if (p.room === room) open(id); else { goRoom(p.room); setTimeout(() => open(id), 1100); }
   },
