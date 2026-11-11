@@ -435,8 +435,8 @@ body.public #panel .list input { pointer-events: none; }
   <div id="term" tabindex="0" aria-label="Terminal. Type help and press Enter.">
     <div id="termOut"></div>
     <div id="termLine"><span id="termPrompt"></span><span id="termIn"></span><span class="cur"></span></div>
-    <input id="termKey" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal input">
   </div>
+  <input id="termKey" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal input">
   <div id="editor" hidden><div id="edHead"></div><pre id="edBody"></pre><div id="edFoot"></div></div>
   <div id="site" hidden>
     <nav id="siteNav"></nav>
@@ -574,19 +574,13 @@ function grain() {
   if (grainTex) return grainTex;
   const c = document.createElement('canvas'); c.width = c.height = 256;
   const g = c.getContext('2d'), d = g.createImageData(256, 256);
-  for (let i = 0; i < d.data.length; i += 4) { const n = 238 + Math.random() * 17; d.data[i] = d.data[i + 1] = d.data[i + 2] = n; d.data[i + 3] = 255; }
+  for (let i = 0; i < d.data.length; i += 4) { const n = 205 + Math.random() * 50; d.data[i] = d.data[i + 1] = d.data[i + 2] = n; d.data[i + 3] = 255; }
   g.putImageData(d, 0, 0);
-  // soft blotches on top, like hand-painted or slightly worn surfaces
-  for (let i = 0; i < 60; i++) {
-    const x = Math.random() * 256, y = Math.random() * 256, r = 10 + Math.random() * 40, rg = g.createRadialGradient(x, y, 0, x, y, r);
-    rg.addColorStop(0, `rgba(${Math.random() < 0.5 ? '255,255,255' : '120,100,90'},${0.04 + Math.random() * 0.05})`); rg.addColorStop(1, 'rgba(0,0,0,0)');
-    g.fillStyle = rg; g.fillRect(x - r, y - r, r * 2, r * 2);
-  }
-  grainTex = new THREE.CanvasTexture(c); grainTex.colorSpace = THREE.SRGBColorSpace; grainTex.wrapS = grainTex.wrapT = THREE.RepeatWrapping; grainTex.repeat.set(3, 3);
+  grainTex = new THREE.CanvasTexture(c); grainTex.wrapS = grainTex.wrapT = THREE.RepeatWrapping; grainTex.repeat.set(3, 3);
   return grainTex;
 }
 function mat(c, rough = 0.7, metal = 0) {
-  return mats[c + rough + metal] ??= new THREE.MeshStandardMaterial({ color: c, roughness: rough, metalness: metal, envMapIntensity: 0.38, map: grain(), bumpMap: grain(), bumpScale: 0.2 });
+  return mats[c + rough + metal] ??= new THREE.MeshStandardMaterial({ color: c, roughness: rough, metalness: metal, envMapIntensity: 0.38, bumpMap: grain(), bumpScale: 0.15 });
 }
 const asMat = c => c.isMaterial ? c : mat(c);
 function box(w, h, d, c, x, y, z, parent = ROOT, r = 0.06) {
@@ -2638,10 +2632,10 @@ function complete(v) {
 }
 tKey.addEventListener('input', () => { tIn.textContent = tKey.value; });
 tKey.addEventListener('keydown', e => {
-  if (term.editor === 'nano') { if (e.ctrlKey && e.key.toLowerCase() === 'x') { e.preventDefault(); closeEditor(); } return; }
+  if (term.editor === 'nano') { if ((e.ctrlKey && e.key.toLowerCase() === 'x') || e.key === 'Escape') { e.preventDefault(); closeEditor(); } else e.preventDefault(); return; }
   if (term.editor === 'vim') {
     if (e.key === 'Enter') { if (/^:q!?$|^:wq$|^:x$/.test(term.vimCmd)) closeEditor(); term.vimCmd = ''; $('#edFoot').textContent = '-- read only --   type :q and press enter to quit'; }
-    else if (e.key === 'Escape') term.vimCmd = '';
+    else if (e.key === 'Escape') { term.vimCmd = ''; $('#edFoot').textContent = '-- read only --   type :q and press enter to quit'; }
     else if (e.key.length === 1) { term.vimCmd += e.key; $('#edFoot').textContent = term.vimCmd; }
     else if (e.key === 'Backspace') term.vimCmd = term.vimCmd.slice(0, -1);
     e.preventDefault(); return;
