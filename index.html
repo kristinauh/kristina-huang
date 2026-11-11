@@ -411,6 +411,31 @@ body.public #panel .list input { pointer-events: none; }
 #panel :is(.phead, .hud, .pane.on, .row) { animation: none; box-shadow: 0 0 1px rgba(190, 240, 255, .8), 0 0 10px rgba(90, 195, 255, .35); background: linear-gradient(160deg, rgba(14, 40, 70, .92), rgba(8, 22, 42, .95)); }
 #panel, #panel #pTag, #panel h3 { text-shadow: none; }
 @media (max-width: 640px) { #panel { top: auto; left: 0; right: 0; bottom: 0; width: auto; height: 70%; } #panel:not(.open) { transform: translateY(110%); } }
+
+/* modern computer: a desktop with a browser window showing the site, like a real screen */
+#os { flex: 1; display: flex; flex-direction: column; background: linear-gradient(135deg, #fbd3e0 0%, #f3b7cb 40%, #d9b7e8 100%); }
+#os[hidden] { display: none; }
+#computer.modern .pc-bar { display: none; }
+.browser { flex: 1; margin: 14px 14px 8px; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; background: #fff; box-shadow: 0 12px 30px -10px rgba(90, 30, 60, .45); min-height: 0; }
+.b-tabs { display: flex; align-items: flex-end; gap: 6px; height: 34px; padding: 0 0 0 10px; background: #f6dbe4; font: 12px/1 system-ui, sans-serif; color: #4a2433; }
+.b-tab { display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; background: #fff; border-radius: 8px 8px 0 0; min-width: 180px; }
+.b-tab .fav { width: 12px; height: 12px; border-radius: 3px; background: #f29bbd; box-shadow: inset 0 0 0 2px #fff; }
+.b-tab .tx { margin-left: auto; opacity: .5; }
+.b-new { padding: 0 6px 7px; opacity: .6; font-size: 15px; }
+.b-win { margin-left: auto; display: flex; align-self: stretch; }
+.b-win > * { width: 40px; display: grid; place-items: center; font-size: 13px; border: 0; background: none; color: inherit; }
+.b-win button:hover { background: #e81123; color: #fff; }
+.b-bar { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-bottom: 1px solid #f2cfda; font: 13px/1 system-ui, sans-serif; color: #6b4a58; }
+.b-nav { width: 22px; text-align: center; opacity: .65; }
+.omni { flex: 1; display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; border-radius: 999px; background: #f7eef1; }
+.omni .lock { font-size: 10px; opacity: .6; } .omni .star { margin-left: auto; opacity: .5; }
+.avatar { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: #e0567f; color: #fff; font: 700 11px/1 system-ui; }
+.browser #site { flex: 1; min-height: 0; }
+.taskbar { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; margin: 0 14px 8px; border-radius: 10px; background: rgba(255, 255, 255, .55); backdrop-filter: blur(8px); font: 12px/1 system-ui, sans-serif; color: #4a2433; }
+.tb-start { color: #e0567f; font-size: 14px; margin-right: 6px; }
+.tb-app { width: 30px; height: 26px; border: 0; border-radius: 7px; background: none; font: 700 12px/1 ui-monospace, Menlo, monospace; color: #4a2433; }
+.tb-app.on, .tb-app:hover { background: rgba(255, 255, 255, .8); }
+.tb-clock { margin-left: auto; font-variant-numeric: tabular-nums; }
 </style>
 
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGcgZmlsbD0iI2U0ZTZlYyI+CiAgICA8cmVjdCB4PSIyIiB5PSIxMyIgd2lkdGg9IjkiIGhlaWdodD0iNSIgcng9IjEuNSIvPjxyZWN0IHg9IjIiIHk9IjIzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+PHJlY3QgeD0iMiIgeT0iMzMiIHdpZHRoPSI5IiBoZWlnaHQ9IjUiIHJ4PSIxLjUiLz48cmVjdCB4PSIyIiB5PSI0MyIgd2lkdGg9IjkiIGhlaWdodD0iNSIgcng9IjEuNSIvPgogICAgPHJlY3QgeD0iNTMiIHk9IjEzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+PHJlY3QgeD0iNTMiIHk9IjIzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+PHJlY3QgeD0iNTMiIHk9IjMzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+PHJlY3QgeD0iNTMiIHk9IjQzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+CiAgPC9nPgogIDxyZWN0IHg9IjgiIHk9IjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI1NCIgcng9IjgiIGZpbGw9IiNkOTcyOWEiLz4KICA8cmVjdCB4PSI4IiB5PSI1IiB3aWR0aD0iNDgiIGhlaWdodD0iNTAiIHJ4PSI4IiBmaWxsPSIjZjI5YmJkIi8+CiAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxMyIgcj0iMyIgZmlsbD0iI2Q5NzI5YSIvPgogIDxwYXRoIGQ9Ik0xOSAyNCBWMzkgTTE5IDMzIEwyNyAyNCBNMjIuNSAzMCBMMjggMzkgTTM0IDI0IFYzOSBNNDUgMjQgVjM5IE0zNCAzMS41IEg0NSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmNmY5IiBzdHJva2Utb3BhY2l0eT0iLjkyIiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InNxdWFyZSIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIvPgogIDxwYXRoIGQ9Ik0xOSA0NSBIMjYgTTI5IDQ1IEgzMyBNMzYgNDUgSDQ1IiBzdHJva2U9IiNmZmY2ZjkiIHN0cm9rZS1vcGFjaXR5PSIuNTUiIHN0cm9rZS13aWR0aD0iMS42Ii8+Cjwvc3ZnPgo=">
@@ -425,7 +450,7 @@ body.public #panel .list input { pointer-events: none; }
 <div id="labels"></div>
 
 <div id="computer" hidden>
-  <div class="pc-bar">
+  <div class="pc-bar" id="pcBar">
     <span id="pcTitle">kh@workbench: ~</span>
     <span class="pc-tools">
       <button id="pcRetro" type="button">Terminal</button><button id="pcModern" type="button">Website</button>
@@ -438,12 +463,28 @@ body.public #panel .list input { pointer-events: none; }
   </div>
   <input id="termKey" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal input">
   <div id="editor" hidden><div id="edHead"></div><pre id="edBody"></pre><div id="edFoot"></div></div>
-  <div id="site" hidden>
-    <nav id="siteNav"></nav>
-    <main id="siteMain"></main>
+  <div id="os" hidden>
+    <div class="browser">
+      <div class="b-tabs">
+        <div class="b-tab"><span class="fav"></span><span id="bTabTitle">Kristina Huang</span><span class="tx">×</span></div>
+        <span class="b-new">+</span>
+        <span class="b-win"><span>–</span><span>□</span><button id="osClose" type="button" aria-label="Close computer">×</button></span>
+      </div>
+      <div class="b-bar">
+        <span class="b-nav">←</span><span class="b-nav">→</span><span class="b-nav">⟳</span>
+        <div class="omni"><span class="lock">🔒</span><span id="bUrl">kristinahuang.dev</span><span class="star">☆</span></div>
+        <span class="avatar">K</span>
+      </div>
+      <div id="site"><nav id="siteNav"></nav><main id="siteMain"></main></div>
+    </div>
+    <div class="taskbar">
+      <span class="tb-start">◆</span>
+      <button class="tb-app on" type="button" title="Browser">◎</button>
+      <button class="tb-app" id="osTerm" type="button" title="Terminal">&gt;_</button>
+      <span class="tb-clock" id="osClock"></span>
+    </div>
   </div>
 </div>
-
 <aside id="panel" inert aria-label="Project">
   <div class="phead">
     <div>
@@ -1117,9 +1158,6 @@ function buildOffice() {
   // a modern setup that can stand in for the retro terminal: thin monitor on a stand, flat keyboard, mouse
   const pcModern = new THREE.Group(); pcModern.position.set(0.15, 2.53, -0.35); desk.add(pcModern);
   const MW = mat('#f4eef0', 0.35), MB = mat('#e9c3d0', 0.4);
-  box(0.5, 0.03, 0.34, MW, 0, 0.015, -0.1, pcModern, 0.015);
-  box(0.08, 0.62, 0.05, MW, 0, 0.33, -0.16, pcModern, 0.02);
-  box(1.5, 0.92, 0.05, MB, 0, 0.98, -0.1, pcModern, 0.04);
   const site = canvasTex(480, 290, (g, w, h) => {
     g.fillStyle = '#fff8fa'; g.fillRect(0, 0, w, h);
     g.fillStyle = '#f4a9c0'; g.fillRect(0, 0, w, 34);
@@ -1129,7 +1167,25 @@ function buildOffice() {
     g.fillStyle = '#94677a'; g.font = '400 13px system-ui, sans-serif'; g.fillText('Embedded systems · PCB design · firmware', 24, 116);
     [[24, '#f7d0dc'], [172, '#d8f0ec'], [320, '#efe3c8']].forEach(([x, c]) => { g.fillStyle = c; g.fillRect(x, 150, 136, 100); g.fillStyle = 'rgba(74,36,51,.5)'; g.fillRect(x + 10, 230, 80, 8); });
   });
-  const modernScr = screen(1.4, 0.84, site, 0, 0.98, -0.07, 0, pcModern);
+  // curved gaming monitor: thin black bezel bent around the viewer, white back, a slim neck and a dark v-shaped foot
+  const R = 3.2, ARC = 1.6 / R, panelY = 0.98, frontZ = -0.04;
+  const curved = (r, h, m, side) => {
+    const g = new THREE.CylinderGeometry(r, r, h, 48, 1, true, Math.PI - ARC / 2, ARC);
+    const mesh = new THREE.Mesh(g, m); mesh.position.set(0, panelY, frontZ + R); mesh.material.side = side ?? THREE.DoubleSide; mesh.castShadow = true; pcModern.add(mesh); return mesh;
+  };
+  const BEZ = new THREE.MeshStandardMaterial({ color: '#141418', roughness: 0.35 });
+  curved(R, 0.92, BEZ);
+  curved(R + 0.04, 0.88, new THREE.MeshStandardMaterial({ color: '#f2f0f2', roughness: 0.4 }));
+  const siteFlip = site; siteFlip.wrapS = THREE.RepeatWrapping; siteFlip.repeat.x = -1;
+  const display = new THREE.Mesh(new THREE.CylinderGeometry(R - 0.004, R - 0.004, 0.84, 48, 1, true, Math.PI - (ARC - 0.04) / 2, ARC - 0.04), new THREE.MeshBasicMaterial({ map: siteFlip, toneMapped: false, side: THREE.BackSide }));
+  display.position.set(0, panelY, frontZ + R); pcModern.add(display);
+  box(0.5, 0.05, 0.12, mat('#f2f0f2', 0.4), 0, panelY - 0.4, frontZ - 0.12, pcModern, 0.03);
+  box(0.03, 0.006, 0.6, new THREE.MeshBasicMaterial({ color: '#7fd3ff', toneMapped: false }), 0, panelY - 0.47, frontZ - 0.05, pcModern, 0);
+  const monNeck = box(0.14, 0.62, 0.05, mat('#f2f0f2', 0.4), 0, 0.42, -0.24, pcModern, 0.02); monNeck.rotation.x = 0.12;
+  [-1, 1].forEach(sx => { const leg = box(0.08, 0.025, 0.5, mat('#26262b', 0.4), sx * 0.15, 0.014, -0.08, pcModern, 0.012); leg.rotation.y = sx * 0.55; });
+  box(0.16, 0.03, 0.16, mat('#26262b', 0.4), 0, 0.015, -0.28, pcModern, 0.02);
+  // a flat stand-in the size of the screen's middle, where the live page is placed when you zoom in
+  const modernScr = screen(1.5, 0.84, site, 0, panelY, frontZ + 0.03, 0, pcModern); modernScr.visible = false;
   box(1.0, 0.025, 0.32, MW, -0.05, 0.012, 0.45, pcModern, 0.012);
   for (let r = 0; r < 4; r++) for (let c = 0; c < 14; c++) box(0.055, 0.012, 0.055, mat('#ffffff', 0.5), -0.5 + c * 0.066, 0.03, 0.34 + r * 0.068, pcModern, 0.008);
   ball(0.05, MW, 0.6, 0.03, 0.47, pcModern, 0.8, 0.45, 1.2);
@@ -2663,6 +2719,8 @@ const SITE = {
   Contact: m => PORTFOLIO.contact.forEach(([k, v]) => { const c = el('div', 'card'); c.append(el('h3', '', k)); if (v) { const a = el('a', '', v.replace(/^https?:\/\//, '')); a.href = v; a.target = '_blank'; a.rel = 'noopener'; c.append(a); } else c.append(el('div', 'meta', 'Coming soon')); m.append(c); }),
 };
 function showPage(name) {
+  $('#bUrl').textContent = 'kristinahuang.dev' + (name === 'Home' ? '' : '/' + name.toLowerCase());
+  $('#bTabTitle').textContent = name === 'Home' ? PORTFOLIO.name : `${name} \u00b7 ${PORTFOLIO.name}`;
   $('#siteNav').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.textContent === name));
   const m = $('#siteMain'); m.replaceChildren(); SITE[name](m); m.scrollTop = 0;
 }
@@ -2676,7 +2734,8 @@ function showComputer(mode) {
   requestAnimationFrame(() => c.classList.add('on'));
   $('#pcRetro').classList.toggle('on', mode === 'retro'); $('#pcModern').classList.toggle('on', mode === 'modern');
   $('#pcTitle').textContent = mode === 'retro' ? 'kh@workbench: ~' : PORTFOLIO.name;
-  $('#term').hidden = mode !== 'retro'; $('#editor').hidden = true; term.editor = null; $('#site').hidden = mode !== 'modern';
+  $('#term').hidden = mode !== 'retro'; $('#editor').hidden = true; term.editor = null; $('#os').hidden = mode !== 'modern';
+  $('#osClock').textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   if (mode === 'retro') {
     if (!tOut.childElementCount) { tPrint('KH-OS 1.0  (tty1)', 'dim'); tPrint('last login: today from the office chair\n', 'dim'); tPrint("type 'help' to see what you can do, or 'ls' to look around.\n"); }
     $('#termPrompt').textContent = promptStr(); setTimeout(() => tKey.focus({ preventScroll: true }), 400);
@@ -2686,6 +2745,8 @@ function closeComputer() { const c = $('#computer'); c.classList.remove('on'); c
 $('#pcRetro').addEventListener('click', () => showComputer('retro'));
 $('#pcModern').addEventListener('click', () => showComputer('modern'));
 $('#pcClose').addEventListener('click', closeComputer);
+$('#osClose').addEventListener('click', closeComputer);
+$('#osTerm').addEventListener('click', () => showComputer('retro'));
 
 
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
