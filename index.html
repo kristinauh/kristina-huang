@@ -457,6 +457,10 @@ body.public #panel .list input { pointer-events: none; }
 import * as THREE from './three.module.min.js';
 import { RoundedBoxGeometry } from './RoundedBoxGeometry.js';
 import { RoomEnvironment } from './RoomEnvironment.js';
+import { EffectComposer } from './pp/postprocessing/EffectComposer.js';
+import { RenderPass } from './pp/postprocessing/RenderPass.js';
+import { GTAOPass } from './pp/postprocessing/GTAOPass.js';
+import { OutputPass } from './pp/postprocessing/OutputPass.js';
 
 const $ = s => document.querySelector(s);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -481,8 +485,19 @@ let ROOT = scene;
 const v = (x, y, z) => new THREE.Vector3(x, y, z);
 const rand = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(1234567);
 const mats = {};
+// fine surface grain shared by every plain material, so nothing reads as flat untextured plastic
+let grainTex = null;
+function grain() {
+  if (grainTex) return grainTex;
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d'), d = g.createImageData(256, 256);
+  for (let i = 0; i < d.data.length; i += 4) { const n = 205 + Math.random() * 50; d.data[i] = d.data[i + 1] = d.data[i + 2] = n; d.data[i + 3] = 255; }
+  g.putImageData(d, 0, 0);
+  grainTex = new THREE.CanvasTexture(c); grainTex.wrapS = grainTex.wrapT = THREE.RepeatWrapping; grainTex.repeat.set(3, 3);
+  return grainTex;
+}
 function mat(c, rough = 0.7, metal = 0) {
-  return mats[c + rough + metal] ??= new THREE.MeshStandardMaterial({ color: c, roughness: rough, metalness: metal, envMapIntensity: 0.38 });
+  return mats[c + rough + metal] ??= new THREE.MeshStandardMaterial({ color: c, roughness: rough, metalness: metal, envMapIntensity: 0.38, bumpMap: grain(), bumpScale: 0.35, roughnessMap: grain() });
 }
 const asMat = c => c.isMaterial ? c : mat(c);
 function box(w, h, d, c, x, y, z, parent = ROOT, r = 0.06) {
@@ -517,7 +532,7 @@ function canvasTex(w, h, draw, rep) {
   if (rep) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...rep); }
   return t;
 }
-const texMat = (tex, rough, color = '#ffffff') => new THREE.MeshStandardMaterial({ map: tex, color, roughness: rough, envMapIntensity: 0.38 });
+const texMat = (tex, rough, color = '#ffffff') => new THREE.MeshStandardMaterial({ map: tex, color, roughness: rough, envMapIntensity: 0.38, bumpMap: tex, bumpScale: 0.6 });
 function screen(w, h, tex, x, y, z, ry, parent = ROOT) {
   const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
   m.position.set(x, y, z); m.rotation.y = ry; parent.add(m); return m;
@@ -1998,12 +2013,22 @@ function pick(e) {
 // camera: slow full turn around the room in overview, eases in to a project and follows the pointer there
 const cam = { pos: new THREE.Vector3(9, 8, 14), target: ROOMS.office.center.clone(), offX: 0, offY: 0 };
 const goal = { base: new THREE.Vector3(), pos: new THREE.Vector3(), target: ROOMS.office.center.clone(), offX: 0, offY: 0 };
+// ambient occlusion pass: soft contact shading in corners and under objects, like a rendered diorama
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const gtao = new GTAOPass(scene, camera, innerWidth, innerHeight);
+gtao.blendIntensity = 0.9;
+gtao.updateGtaoMaterial({ radius: 0.7, distanceExponent: 1.5, thickness: 1.5, scale: 1.2, samples: 16 });
+gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 16 });
+composer.addPass(gtao);
+composer.addPass(new OutputPass());
 const pointer = { x: 0, y: 0 };
 let W = 1, H = 1, fitR = 17, sweepT = 0, dragAngle = 0;
 
 function resize() {
   W = innerWidth; H = innerHeight;
   renderer.setSize(W, H, false);
+  composer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); composer.setSize(W, H);
   camera.aspect = W / H;
   camera.fov = camera.aspect < 1 ? 42 : 30;
   camera.updateProjectionMatrix();
@@ -2166,7 +2191,7 @@ function frame() {
     bird.rotation.z = hovered === 'pingu' ? Math.sin(t * 45) * 0.06 : 0;
   }
   placeLabels();
-  renderer.render(scene, camera);
+  composer.render();
   requestAnimationFrame(frame);
 }
 resize();
