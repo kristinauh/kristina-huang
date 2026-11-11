@@ -1091,25 +1091,38 @@ function buildOffice() {
   box(2.3, 0.04, 1.08, WALNUT, 0, 1.1, 0, rc, 0.01);
   box(0.04, 1.9, 1.08, WALNUT, 0, 1.1, 0, rc, 0.01);
   // records: sleeves standing spine-out in all four cubbies, each one a different album
-  // sixteen records, one per genre. each is an original sleeve and an original tune in the style named
+  // one record per favourite / genre. each is an original sleeve and an original tune in the style named
   // key/prog: harmony (scale degrees), scale: melody notes, pad/bass/drums: arrangement, mel: how busy the lead is
   const ALBUMS = [
-    { title: 'Late Night Jazz', c: ['#1f3b57', '#e8c27a'], art: 'moon', bpm: 84, root: 50, key: 'major', prog: [1, 4, 0, 5], scale: 'dorian', pad: 'piano', bass: 'walk', drums: 'jazz', mel: 0.5, wave: 'triangle' },
-    { title: 'City Pop Drive', c: ['#f29bbd', '#7fd3c8'], art: 'sun', bpm: 104, root: 55, key: 'major', prog: [3, 2, 1, 4], scale: 'major', pad: 'stab', bass: 'walk', drums: 'four', mel: 0.5, wave: 'sawtooth', lp: 2000 },
-    { title: 'Lo-fi Study', c: ['#a9b79a', '#f4efe6'], art: 'rain', bpm: 76, root: 53, key: 'major', prog: [3, 2, 5, 0], scale: 'penta', pad: 'pad', bass: 'root', drums: 'boombap', mel: 0.35, wave: 'triangle', lp: 1400 },
-    { title: 'Bossa Mornings', c: ['#e8702a', '#fff1d6'], art: 'waves', bpm: 96, root: 57, key: 'major', prog: [0, 5, 1, 4], scale: 'major', pad: 'piano', bass: 'walk', drums: 'bossa', mel: 0.4, wave: 'sine' },
-    { title: 'Synth Dreams', c: ['#5b4a9e', '#ff9cc0'], art: 'grid', bpm: 110, root: 52, key: 'minor', prog: [0, 5, 2, 6], scale: 'minor', pad: 'arp', bass: 'root', drums: 'four', mel: 0.3, wave: 'square' },
-    { title: 'Funk Kitchen', c: ['#c8a13a', '#2b2b30'], art: 'stripes', bpm: 112, root: 45, key: 'minor', prog: [0, 0, 3, 4], scale: 'mpenta', pad: 'stab', bass: 'walk', drums: 'funk', mel: 0.4, wave: 'sawtooth' },
-    { title: 'Summer Spirits', c: ['#9fd4e8', '#fdf6e3'], art: 'cloud', bpm: 88, root: 60, key: 'major', prog: [3, 4, 2, 5], scale: 'major', pad: 'piano', bass: 'root', drums: 'none', mel: 0.6, melDur: 1, wave: 'sine' },
-    { title: 'Bedroom Whispers', c: ['#141414', '#8fe36a'], art: 'eye', bpm: 70, root: 50, key: 'minor', prog: [0, 3, 5, 4], scale: 'minor', pad: 'pad', bass: '808', drums: 'snap', mel: 0.25, wave: 'sine', lp: 1100 },
-    { title: 'Crimson Static', c: ['#8e1b1b', '#f1d2c4'], art: 'rose', bpm: 90, root: 52, key: 'minor', prog: [0, 3, 6, 5], scale: 'mpenta', pad: 'stab', bass: 'walk', drums: 'boombap', mel: 0.45, wave: 'sawtooth', lp: 1800 },
-    { title: 'Mirror Talk', c: ['#d9c8a6', '#3a2f28'], art: 'rings', bpm: 72, root: 52, key: 'major', prog: [0, 2, 3, 4], scale: 'penta', pad: 'pad', bass: 'root', drums: 'boombap', mel: 0.3, melDur: 1, wave: 'triangle', lp: 1500 },
-    { title: '月下独白', c: ['#2c3e66', '#f3e1b6'], art: 'moon', bpm: 68, root: 57, key: 'major', prog: [0, 4, 5, 2], scale: 'penta', pad: 'piano', bass: 'root', drums: 'ballad', mel: 0.55, melDur: 1, wave: 'sine' },
-    { title: '招财夜市', c: ['#b3121f', '#f6c445'], art: 'coin', bpm: 140, root: 50, key: 'minor', prog: [0, 5, 3, 4], scale: 'mpenta', pad: 'none', bass: '808', drums: 'trap', mel: 0.6, wave: 'triangle' },
-    { title: 'Glass Choir', c: ['#2a1f3d', '#c9b8ff'], art: 'diamond', bpm: 64, root: 48, key: 'minor', prog: [0, 3, 0, 4], scale: 'minor', pad: 'choir', bass: 'root', drums: 'ballad', mel: 0.3, melDur: 1.5, wave: 'sine' },
-    { title: 'Velvet Haze', c: ['#f2c6d8', '#6d5a8a'], art: 'circle', bpm: 92, root: 54, key: 'major', prog: [0, 5, 3, 0], scale: 'lydian', pad: 'arp', bass: 'root', drums: 'four', mel: 0.3, wave: 'triangle', lp: 1300 },
-    { title: 'Lagos Sunset', c: ['#f08a24', '#1d6b4f'], art: 'sun', bpm: 108, root: 55, key: 'major', prog: [0, 3, 4, 3], scale: 'penta', pad: 'stab', bass: 'walk', drums: 'afro', mel: 0.45, wave: 'square' },
-    { title: 'Rainy Strings', c: ['#5d7286', '#e9eef2'], art: 'rain', bpm: 72, root: 55, key: 'minor', prog: [0, 3, 4, 0], scale: 'minor', pad: 'pad', bass: 'root', drums: 'none', mel: 0.5, melDur: 1, wave: 'sawtooth', lp: 1600 },
+    { title: 'Late Night Jazz', insp: ['late-night jazz trios'], c: ['#1f3b57', '#e8c27a'], art: 'moon', bpm: 84, root: 50, key: 'major', prog: [1, 4, 0, 5], scale: 'dorian', pad: 'piano', bass: 'walk', drums: 'jazz', mel: 0.5, wave: 'triangle' },
+    { title: 'City Pop Drive', insp: ['80s Japanese city pop'], c: ['#f29bbd', '#7fd3c8'], art: 'sun', bpm: 104, root: 55, key: 'major', prog: [3, 2, 1, 4], scale: 'major', pad: 'stab', bass: 'walk', drums: 'four', mel: 0.5, wave: 'sawtooth', lp: 2000 },
+    { title: 'Lo-fi Study', insp: ['lo-fi hip hop study beats'], c: ['#a9b79a', '#f4efe6'], art: 'rain', bpm: 76, root: 53, key: 'major', prog: [3, 2, 5, 0], scale: 'penta', pad: 'pad', bass: 'root', drums: 'boombap', mel: 0.35, wave: 'triangle', lp: 1400 },
+    { title: 'Bossa Mornings', insp: ['Brazilian bossa nova'], c: ['#e8702a', '#fff1d6'], art: 'waves', bpm: 96, root: 57, key: 'major', prog: [0, 5, 1, 4], scale: 'major', pad: 'piano', bass: 'walk', drums: 'bossa', mel: 0.4, wave: 'sine' },
+    { title: 'Synth Dreams', insp: ['80s synthwave'], c: ['#5b4a9e', '#ff9cc0'], art: 'grid', bpm: 110, root: 52, key: 'minor', prog: [0, 5, 2, 6], scale: 'minor', pad: 'arp', bass: 'root', drums: 'four', mel: 0.3, wave: 'square' },
+    { title: 'Funk Kitchen', insp: ['70s funk'], c: ['#c8a13a', '#2b2b30'], art: 'stripes', bpm: 112, root: 45, key: 'minor', prog: [0, 0, 3, 4], scale: 'mpenta', pad: 'stab', bass: 'walk', drums: 'funk', mel: 0.4, wave: 'sawtooth' },
+    { title: 'Summer Spirits', insp: ['the Studio Ghibli scores', 'Joe Hisaishi'], c: ['#9fd4e8', '#fdf6e3'], art: 'cloud', bpm: 88, root: 60, key: 'major', prog: [3, 4, 2, 5], scale: 'major', pad: 'piano', bass: 'root', drums: 'none', mel: 0.6, melDur: 1, wave: 'sine' },
+    { title: 'Bedroom Whispers', insp: ['the whisper-pop sound', 'Billie Eilish'], c: ['#141414', '#8fe36a'], art: 'eye', bpm: 70, root: 50, key: 'minor', prog: [0, 3, 5, 4], scale: 'minor', pad: 'pad', bass: '808', drums: 'snap', mel: 0.25, wave: 'sine', lp: 1100 },
+    { title: 'Crimson Static', insp: ['Dark Red', 'Steve Lacy'], c: ['#8e1b1b', '#f1d2c4'], art: 'rose', bpm: 90, root: 52, key: 'minor', prog: [0, 3, 6, 5], scale: 'mpenta', pad: 'stab', bass: 'walk', drums: 'boombap', mel: 0.45, wave: 'sawtooth', lp: 1800 },
+    { title: 'Mirror Talk', insp: ['PRIDE.', 'Kendrick Lamar'], c: ['#d9c8a6', '#3a2f28'], art: 'rings', bpm: 72, root: 52, key: 'major', prog: [0, 2, 3, 4], scale: 'penta', pad: 'pad', bass: 'root', drums: 'boombap', mel: 0.3, melDur: 1, wave: 'triangle', lp: 1500 },
+    { title: '月下独白', insp: ['乐极生悲'], c: ['#2c3e66', '#f3e1b6'], art: 'moon', bpm: 68, root: 57, key: 'major', prog: [0, 4, 5, 2], scale: 'penta', pad: 'piano', bass: 'root', drums: 'ballad', mel: 0.55, melDur: 1, wave: 'sine' },
+    { title: '招财夜市', insp: ['来财', 'Skai isyourgod'], c: ['#b3121f', '#f6c445'], art: 'coin', bpm: 140, root: 50, key: 'minor', prog: [0, 5, 3, 4], scale: 'mpenta', pad: 'none', bass: '808', drums: 'trap', mel: 0.6, wave: 'triangle' },
+    { title: 'Glass Choir', insp: ['Never Felt So Alone', 'Labrinth'], c: ['#2a1f3d', '#c9b8ff'], art: 'diamond', bpm: 64, root: 48, key: 'minor', prog: [0, 3, 0, 4], scale: 'minor', pad: 'choir', bass: 'root', drums: 'ballad', mel: 0.3, melDur: 1.5, wave: 'sine' },
+    { title: 'Velvet Haze', insp: ['dreamy shoegaze pop'], c: ['#f2c6d8', '#6d5a8a'], art: 'circle', bpm: 92, root: 54, key: 'major', prog: [0, 5, 3, 0], scale: 'lydian', pad: 'arp', bass: 'root', drums: 'four', mel: 0.3, wave: 'triangle', lp: 1300 },
+    { title: 'Lagos Sunset', insp: ['West African afrobeat'], c: ['#f08a24', '#1d6b4f'], art: 'sun', bpm: 108, root: 55, key: 'major', prog: [0, 3, 4, 3], scale: 'penta', pad: 'stab', bass: 'walk', drums: 'afro', mel: 0.45, wave: 'square' },
+    { title: '暮紫', insp: ['紫', '一颗狼心'], c: ['#3b2252', '#d9b8f0'], art: 'moon', bpm: 72, root: 54, key: 'minor', prog: [0, 5, 3, 4], scale: 'mpenta', pad: 'piano', bass: 'root', drums: 'ballad', mel: 0.5, melDur: 1, wave: 'sine' },
+    { title: '甜蜜热线', insp: ['不得不爱', '潘玮柏 & 弦子'], c: ['#ff8fb8', '#2b5fa8'], art: 'heart', bpm: 90, root: 55, key: 'major', prog: [0, 5, 3, 4], scale: 'major', pad: 'stab', bass: 'walk', drums: 'boombap', mel: 0.5, wave: 'square', lp: 1800 },
+    { title: 'Citrus Hour', insp: ['Tangerine', 'Damiano David'], c: ['#f28c28', '#fff1d6'], art: 'sun', bpm: 118, root: 57, key: 'major', prog: [0, 4, 5, 3], scale: 'major', pad: 'stab', bass: 'walk', drums: 'four', mel: 0.45, wave: 'sawtooth', lp: 2200 },
+    { title: '昼の残響', insp: ['白日', 'King Gnu'], c: ['#f4f2ee', '#1c1c1e'], art: 'circle', bpm: 92, root: 52, key: 'minor', prog: [0, 5, 2, 6], scale: 'minor', pad: 'piano', bass: 'walk', drums: 'four', mel: 0.55, wave: 'square', lp: 1900 },
+    { title: '青苔', insp: ['绿色', '陈雪凝 (Shirley Chen)'], c: ['#4f7a52', '#e6f0d8'], art: 'rain', bpm: 70, root: 55, key: 'major', prog: [0, 4, 5, 3], scale: 'penta', pad: 'piano', bass: 'root', drums: 'ballad', mel: 0.5, melDur: 1, wave: 'sine' },
+    { title: 'Midnight Novel', insp: ['the songs of', 'YOASOBI'], c: ['#1b2245', '#ff8fb8'], art: 'grid', bpm: 128, root: 56, key: 'major', prog: [5, 3, 4, 0], scale: 'major', pad: 'arp', bass: 'walk', drums: 'four', mel: 0.7, wave: 'square' },
+    { title: 'Amber Glass', insp: ['Hennessy', 'kodoku'], c: ['#4a2a16', '#f0a84a'], art: 'diamond', bpm: 130, root: 49, key: 'minor', prog: [0, 5, 0, 4], scale: 'mpenta', pad: 'pad', bass: '808', drums: 'trap', mel: 0.35, wave: 'triangle', lp: 1500 },
+    { title: 'Slow Dance in Blue', insp: ["L'AMOUR DE MA VIE", 'Billie Eilish'], c: ['#2c4b7a', '#f2efe8'], art: 'waves', bpm: 76, root: 53, key: 'major', prog: [1, 4, 0, 5], scale: 'major', pad: 'piano', bass: 'walk', drums: 'jazz', mel: 0.4, wave: 'sine' },
+    { title: 'Static Bloom', insp: ['TV', 'Billie Eilish'], c: ['#8a8d93', '#f6f6f4'], art: 'rings', bpm: 66, root: 52, key: 'minor', prog: [0, 3, 5, 4], scale: 'minor', pad: 'piano', bass: 'root', drums: 'none', mel: 0.35, melDur: 1, wave: 'triangle', lp: 1200 },
+    { title: '空位', insp: ['嘉宾', '张远'], c: ['#d8c3a5', '#5a3e2b'], art: 'flower', bpm: 70, root: 52, key: 'minor', prog: [0, 5, 3, 4], scale: 'minor', pad: 'piano', bass: 'root', drums: 'ballad', mel: 0.5, melDur: 1, wave: 'sine' },
+    { title: 'Candlelight Table', insp: ['三个人的晚餐', 'Joanna Wang (王若琳)'], c: ['#6e1f2e', '#f3dcc0'], art: 'cloud', bpm: 100, root: 55, key: 'major', prog: [1, 4, 0, 3], scale: 'dorian', pad: 'piano', bass: 'walk', drums: 'jazz', mel: 0.45, wave: 'triangle' },
+    { title: 'Velvet Letters', insp: ['Let You Break My Heart Again', 'Laufey'], c: ['#f2e6cf', '#3d5a80'], art: 'moon', bpm: 92, root: 57, key: 'major', prog: [0, 5, 1, 4], scale: 'major', pad: 'piano', bass: 'walk', drums: 'bossa', mel: 0.45, wave: 'sine' },
+    { title: 'Night Swim', insp: ['Crave You', 'Flight Facilities'], c: ['#1f6f78', '#ff9f80'], art: 'waves', bpm: 100, root: 50, key: 'minor', prog: [0, 5, 2, 6], scale: 'minor', pad: 'arp', bass: 'root', drums: 'four', mel: 0.3, wave: 'sine', lp: 1600 },
+    { title: 'Rainy Strings', insp: ['romantic-era string quartets'], c: ['#5d7286', '#e9eef2'], art: 'rain', bpm: 72, root: 55, key: 'minor', prog: [0, 3, 4, 0], scale: 'minor', pad: 'pad', bass: 'root', drums: 'none', mel: 0.5, melDur: 1, wave: 'sawtooth', lp: 1600 },
   ];
   const drawCover = (al, g, w, h) => {
     const [a, b] = al.c; g.fillStyle = a; g.fillRect(0, 0, w, h); g.fillStyle = b; g.strokeStyle = b; g.lineWidth = 6;
@@ -1127,16 +1140,32 @@ function buildOffice() {
       rings: () => { g.lineWidth = 3; for (let r = 8; r < 52; r += 9) { g.beginPath(); g.arc(cx, cy, r, 0, 7); g.stroke(); } },
       coin: () => { g.beginPath(); g.arc(cx, cy, 34, 0, 7); g.fill(); g.fillStyle = a; g.fillRect(cx - 9, cy - 9, 18, 18); },
       diamond: () => { g.beginPath(); g.moveTo(cx, cy - 40); g.lineTo(cx + 30, cy); g.lineTo(cx, cy + 40); g.lineTo(cx - 30, cy); g.closePath(); g.stroke(); g.lineWidth = 2; g.beginPath(); g.moveTo(cx - 30, cy); g.lineTo(cx + 30, cy); g.stroke(); },
+      heart: () => { g.beginPath(); g.moveTo(cx, cy + 30); g.bezierCurveTo(cx - 50, cy - 5, cx - 25, cy - 40, cx, cy - 15); g.bezierCurveTo(cx + 25, cy - 40, cx + 50, cy - 5, cx, cy + 30); g.fill(); },
+      flower: () => { for (let k = 0; k < 5; k++) { const an = k * 1.2566; g.beginPath(); g.arc(cx + Math.cos(an) * 18, cy + Math.sin(an) * 18, 14, 0, 7); g.fill(); } g.fillStyle = '#f6d36a'; g.beginPath(); g.arc(cx, cy, 9, 0, 7); g.fill(); },
       circle: () => { g.globalAlpha = 0.7; g.beginPath(); g.arc(cx - 12, cy, 30, 0, 7); g.fill(); g.beginPath(); g.arc(cx + 14, cy + 8, 26, 0, 7); g.fill(); g.globalAlpha = 1; },
     })[al.art]();
     g.fillStyle = b; g.font = `700 13px ui-rounded, system-ui, sans-serif`; g.textAlign = 'left'; g.fillText(al.title, 10, h - 12);
   };
+  // back of each sleeve: the song it was inspired by
+  const drawBack = (al, g, w, h) => {
+    const [a, b] = al.c; g.fillStyle = a; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(0, 0, w, h);
+    g.fillStyle = b; g.textAlign = 'left';
+    g.font = '700 22px ui-rounded, system-ui, sans-serif'; g.fillText(al.title, 20, 40);
+    g.globalAlpha = 0.7; g.font = '600 11px ui-monospace, Menlo, monospace'; g.fillText('INSPIRED BY', 20, 88); g.globalAlpha = 1;
+    const [song, artist] = al.insp, wrap = (t, y, size, weight) => { g.font = `${weight} ${size}px ui-rounded, system-ui, sans-serif`;
+      let line = ''; for (const ch of t.split(/(\s+)/)) { if (g.measureText(line + ch).width > w - 40 && line) { g.fillText(line.trim(), 20, y); y += size + 4; line = ''; } line += ch; } g.fillText(line.trim(), 20, y); return y; };
+    const y = wrap(song, 118, 24, 700);
+    if (artist) wrap(artist, y + 30, 16, 500);
+    g.globalAlpha = 0.35; for (let i = 0; i < 4; i++) g.fillRect(20, 196 + i * 12, 60 + ((i * 37) % 90), 4); g.globalAlpha = 1;
+    g.font = '600 10px ui-monospace, Menlo, monospace'; g.textAlign = 'right'; g.fillText(`${al.bpm} BPM`, w - 18, h - 16);
+  };
   const records = [];
   ALBUMS.forEach((al, n) => {
-    const cub = Math.floor(n / 4), i = n % 4, side = cub % 2 ? 1 : -1, y0 = cub < 2 ? 0.16 : 1.12;
-    const cover = canvasTex(128, 128, (g, w, h) => drawCover(al, g, w, h));
+    // dealt round the four cubbies so each gets a mix
+    const cub = n % 4, i = Math.floor(n / 4), side = cub % 2 ? 1 : -1, y0 = cub < 2 ? 0.16 : 1.12;
+    const cover = canvasTex(128, 128, (g, w, h) => drawCover(al, g, w, h)), back = canvasTex(256, 256, (g, w, h) => drawBack(al, g, w, h));
     const spine = canvasTex(8, 64, (g, w, h) => { g.fillStyle = al.c[0]; g.fillRect(0, 0, w, h); g.fillStyle = al.c[1]; g.fillRect(0, h * 0.2, w, h * 0.35); });
-    const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.76, 0.76), [texMat(cover, 0.7), texMat(cover, 0.7), mat(al.c[0], 0.7), mat(al.c[0], 0.7), texMat(spine, 0.7), mat(al.c[0], 0.7)]);
+    const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.76, 0.76), [texMat(cover, 0.7), texMat(back, 0.7), mat(al.c[0], 0.7), mat(al.c[0], 0.7), texMat(spine, 0.7), mat(al.c[0], 0.7)]);
     sleeve.position.set(side * (0.1 + i * 0.07), y0 + 0.39, -0.13);
     sleeve.castShadow = true; sleeve.userData = { album: al, home: sleeve.position.clone() }; rc.add(sleeve); records.push(sleeve);
   });
@@ -1153,6 +1182,9 @@ function buildOffice() {
     cyl(0.045, 0.045, 0.02, '#1a1415', -side * 1.01, 1.75, 0.04, h, 20).rotation.x = Math.PI / 2;
     return h;
   });
+  // little walnut stand on the cabinet top where the record that's playing is shown
+  box(0.44, 0.03, 0.16, WALNUT, -0.96, 2.115, 0.02, rc, 0.01);
+  box(0.44, 0.04, 0.02, WALNUT, -0.96, 2.15, 0.09, rc, 0.008);
   // turntable
   const tt = new THREE.Group(); tt.position.y = 2.1; rc.add(tt);
   box(1.45, 0.2, 1.05, WALNUT, 0, 0.1, 0, tt, 0.025);
@@ -1178,7 +1210,7 @@ function buildOffice() {
     new THREE.MeshStandardMaterial({ color: '#3b2a22', roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.32, depthWrite: false, envMapIntensity: 1 }));
   cover.position.set(0, 0.065, 0.525); hinge.add(cover);
   [-0.5, 0.5].forEach(x => box(0.08, 0.05, 0.06, mat('#cfcfd2', 0.2, 0.9), x, 0.22, -0.52, tt, 0.01));
-  VINYL = { rc, doors, strips, stripLights, records, tt, platter, armPivot, ttLed, open: false, playing: null, disc: null, anim: null, armTarget: 0, lift: 0 };
+  VINYL = { returning: [], display: { pos: new THREE.Vector3(-0.96, 2.36, 0.02), rx: -0.14, scale: 0.6 }, rc, doors, strips, stripLights, records, tt, platter, armPivot, ttLed, open: false, playing: null, disc: null, anim: null, armTarget: 0, lift: 0 };
   projects['records'] = { group: rc, object: 'Record cabinet', focus: [4.4, 1.45, 0.3], view: [-7.6, 0.7, 0], normal: [-1, 0, 0], noPanel: true, hide: [desk, chair] };
 
   oliveTree(4.4, -2.5, 1.05);
@@ -1324,7 +1356,9 @@ function buildOffice() {
   display.position.set(0, panelY, frontZ + R); pcModern.add(display);
   box(0.5, 0.05, 0.12, mat('#f2f0f2', 0.4), 0, panelY - 0.4, frontZ - 0.12, pcModern, 0.03);
   box(0.5, 0.008, 0.02, new THREE.MeshBasicMaterial({ color: '#7fd3ff', toneMapped: false }), 0, panelY - 0.465, frontZ - 0.01, pcModern, 0);
-  const monNeck = box(0.14, 0.62, 0.05, mat('#f2f0f2', 0.4), 0, 0.42, -0.24, pcModern, 0.02); monNeck.rotation.x = 0.12;
+  // the neck runs from the foot up into a mount plate on the back of the panel, so the screen is actually held up
+  box(0.24, 0.24, 0.06, mat('#f2f0f2', 0.4), 0, 0.95, -0.14, pcModern, 0.02);
+  const monNeck = box(0.14, 0.88, 0.05, mat('#f2f0f2', 0.4), 0, 0.465, -0.235, pcModern, 0.02); monNeck.rotation.x = 0.103;
   [-1, 1].forEach(sx => { const leg = box(0.08, 0.025, 0.5, mat('#26262b', 0.4), sx * 0.15, 0.014, -0.08, pcModern, 0.012); leg.rotation.y = sx * 0.55; });
   box(0.16, 0.03, 0.16, mat('#26262b', 0.4), 0, 0.015, -0.28, pcModern, 0.02);
   // a flat stand-in the size of the screen's middle, where the live page is placed when you zoom in
@@ -2458,7 +2492,9 @@ function pickRecord(e) {
   if (!VINYL || !VINYL.open) return null;
   const r = canvas.getBoundingClientRect();
   ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
-  return ray.intersectObjects(VINYL.records, false)[0]?.object || null;
+  const hit = ray.intersectObjects([...VINYL.records, VINYL.tt], true)[0];
+  if (!hit) return null;
+  return VINYL.records.includes(hit.object) ? hit.object : 'turntable';
 }
 let AC = null, music = null;
 const SCALES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], dorian: [0, 2, 3, 5, 7, 9, 10], lydian: [0, 2, 4, 6, 7, 9, 11], penta: [0, 2, 4, 7, 9], mpenta: [0, 3, 5, 7, 10] };
@@ -2551,9 +2587,10 @@ function makeDisc(al) {
 }
 function playRecord(sleeve) {
   const V = VINYL; if (V.anim) return;
-  const same = V.playing === sleeve;
+  // the record on the stand turns round to show what it was inspired by
+  if (V.playing === sleeve) { sleeve.userData.flip = !sleeve.userData.flip; return; }
+  if (sleeve.userData.ret) return;
   stopRecord(true);
-  if (same) return;
   const al = sleeve.userData.album;
   // the sleeve comes out and turns to show its cover, then the vinyl slides out the top and flies to the platter
   const show = new THREE.Vector3(0, 1.3, 1.15);
@@ -2561,14 +2598,26 @@ function playRecord(sleeve) {
   const to = new THREE.Vector3(V.platter.position.x, V.tt.position.y + V.platter.position.y + 0.04, V.platter.position.z);
   const path = new THREE.CatmullRomCurve3([new THREE.Vector3(show.x, show.y + 0.78, show.z), new THREE.Vector3((show.x + to.x) / 2, 2.95, 0.75),
     new THREE.Vector3(to.x, to.y + 0.35, to.z + 0.15), new THREE.Vector3(to.x, to.y + 0.1, to.z), to], false, 'centripetal');
-  V.playing = sleeve; V.anim = { t: 0, sleeve, disc, show, path, to, al };
+  // afterwards the empty sleeve goes up onto the stand
+  const d = V.display.pos, toStand = new THREE.CatmullRomCurve3([show.clone(), new THREE.Vector3(-0.5, 2.55, 1.05), new THREE.Vector3(d.x, d.y + 0.3, 0.35), d.clone()], false, 'centripetal');
+  sleeve.userData.flip = false;
+  V.playing = sleeve; V.anim = { t: 0, sleeve, disc, show, path, toStand, to, al };
   // unlock audio inside the click itself so browsers allow it
   try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); } catch {}
 }
-function stopRecord(quick) {
+// a sleeve on the stand goes back over the cabinet front, turns square, and slides into its slot
+function returnSleeve(s) {
+  const h = s.userData.home, p = s.position.clone();
+  s.userData.ret = { t: 0, ry: s.rotation.y, rx: s.rotation.x, sc: s.scale.x,
+    path: new THREE.CatmullRomCurve3([p, new THREE.Vector3(p.x, p.y + 0.35, p.z + 0.25), new THREE.Vector3(p.x, p.y + 0.35, 1.15), new THREE.Vector3(h.x, h.y, 1.15), new THREE.Vector3(h.x, h.y, 0.6), h.clone()], false, 'centripetal') };
+}
+function stopRecord(animate) {
   const V = VINYL; if (!V) return;
   stopMusic(); V.armTarget = 0; V.anim = null;
-  if (V.playing) { V.playing.position.copy(V.playing.userData.home); V.playing.rotation.set(0, 0, 0); V.playing.scale.setScalar(1); V.playing = null; }
+  if (V.playing) {
+    const s = V.playing; V.playing = null;
+    if (animate) returnSleeve(s); else { s.userData.ret = null; s.position.copy(s.userData.home); s.rotation.set(0, 0, 0); s.scale.setScalar(1); }
+  }
   if (V.disc) { V.rc.remove(V.disc); V.disc = null; }
   V.ttLed.material.color.set('#3a2a2a');
 }
@@ -2578,23 +2627,32 @@ TICKS.push({ room: 'office', fn: t => {
   const V = VINYL; if (!V) return;
   const dt = Math.min(0.05, t - (vinylLast || t)); vinylLast = t;
   // doors and strip lights
-  const k = 1 - Math.exp(-dt * 6);
+  const k = 1 - Math.exp(-dt * 6), cl = x => Math.min(1, Math.max(0, x));
   V.doors.forEach((d, i) => { d.rotation.y += ((V.open ? (i ? 1.9 : -1.9) : 0) - d.rotation.y) * k; });
   const lit = V.open ? 1 : 0; V.lightK = (V.lightK || 0) + (lit - (V.lightK || 0)) * k;
   V.strips.forEach(s => s.visible = V.lightK > 0.05);
   V.stripLights.forEach(l => l.intensity = V.lightK * 1.6);
-  V.records.forEach(r => { if (r === V.playing) return; const tz = r.userData.home.z + (r.userData.hover ? 0.12 : 0); r.position.z += (tz - r.position.z) * k * 1.5; });
+  V.records.forEach(r => {
+    const R = r.userData.ret;
+    if (R) {
+      R.t += dt; const q = cl(R.t / 1.6), e = ease(q), turn = ease(cl((e - 0.4) / 0.25));
+      R.path.getPoint(e, r.position); r.rotation.set(R.rx * (1 - turn), R.ry * (1 - turn), 0); r.scale.setScalar(R.sc + (1 - R.sc) * turn);
+      if (q >= 1) { r.userData.ret = null; r.position.copy(r.userData.home); r.rotation.set(0, 0, 0); r.scale.setScalar(1); }
+      return;
+    }
+    if (r === V.playing) { if (!V.anim) r.rotation.y += ((r.userData.flip ? Math.PI / 2 : -Math.PI / 2) - r.rotation.y) * k; return; }
+    const tz = r.userData.home.z + (r.userData.hover ? 0.12 : 0); r.position.z += (tz - r.position.z) * k * 1.5;
+  });
   // record animation: sleeve slides out, vinyl lifts free, arcs up and lands on the platter
-  const A = V.anim, cl = x => Math.min(1, Math.max(0, x));
+  const A = V.anim;
   if (A) {
     A.t += dt;
     const s = A.sleeve, home = s.userData.home, D = A.disc;
-    // slide straight out until it clears the cabinet, then turn to face you; going back is the same in reverse
+    // slide straight out until it clears the cabinet, then turn to face you, then up onto the stand once the record has left
     const front = A.front || (A.front = new THREE.Vector3(home.x, home.y, A.show.z));
-    const out = A.t < 2.6 ? ease(cl(A.t / 0.5)) : 1 - ease(cl((A.t - 3.1) / 0.45));
-    const u = A.t < 2.6 ? ease(cl((A.t - 0.5) / 0.55)) : 1 - ease(cl((A.t - 2.6) / 0.5));
-    if (u > 0) s.position.lerpVectors(front, A.show, u); else s.position.lerpVectors(home, front, out);
-    s.rotation.y = -Math.PI / 2 * u; s.scale.setScalar(1 + 0.3 * u);
+    const out = ease(cl(A.t / 0.5)), u = ease(cl((A.t - 0.5) / 0.55)), up = ease(cl((A.t - 2.6) / 1.0)), DP = V.display;
+    if (up > 0) { A.toStand.getPoint(up, s.position); s.rotation.set(DP.rx * up, -Math.PI / 2, 0); s.scale.setScalar(1.3 + (DP.scale - 1.3) * up); }
+    else { if (u > 0) s.position.lerpVectors(front, A.show, u); else s.position.lerpVectors(home, front, out); s.rotation.set(0, -Math.PI / 2 * u, 0); s.scale.setScalar(1 + 0.3 * u); }
     if (A.t < 2.2) {
       D.visible = A.t > 1.4; D.rotation.set(Math.PI / 2, 0, 0);
       D.position.set(A.show.x, A.show.y + 0.78 * ease(cl((A.t - 1.4) / 0.8)), A.show.z);
@@ -2603,7 +2661,7 @@ TICKS.push({ room: 'office', fn: t => {
       A.path.getPoint(e, D.position); D.rotation.set(Math.PI / 2 * (1 - ease(cl((e - 0.15) / 0.45))), 0, 0);
       if (k >= 1 && !A.landed) { A.landed = true; D.rotation.set(0, 0, 0); D.position.copy(A.to); V.armTarget = -0.72; A.armAt = A.t; }
     }
-    if (A.landed && A.t - A.armAt > 1.1) { s.position.copy(home); s.rotation.set(0, 0, 0); s.scale.setScalar(1); startMusic(A.al); V.ttLed.material.color.set('#ff5a4a'); V.anim = null; }
+    if (A.landed && A.t - A.armAt > 1.1 && up >= 1) { startMusic(A.al); V.ttLed.material.color.set('#ff5a4a'); V.anim = null; }
   }
   // tonearm: swings across, lifted while moving, then lowers onto the groove
   const ar = V.armPivot, moving = Math.abs(V.armTarget - ar.rotation.y) > 0.02;
@@ -2768,7 +2826,7 @@ addEventListener('pointerup', e => {
   const moved = down.moved; down = null;
   if (moved || e.target !== canvas) return;
   if (current === 'computer') return close();
-  if (current === 'records') { const r = pickRecord(e); if (r) return playRecord(r); }
+  if (current === 'records') { const r = pickRecord(e); if (r === 'turntable') return stopRecord(true); if (r) return playRecord(r); }
   const hit = pick(e);
   if (hit?.startsWith('door:')) {
     const to = hit.slice(5);
