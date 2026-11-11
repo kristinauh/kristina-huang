@@ -351,7 +351,7 @@ body.public #panel .list input { pointer-events: none; }
   width: 800px; height: 576px; display: flex; flex-direction: column; overflow: hidden; border-radius: 6px;
   opacity: 0; transition: opacity .4s .45s; backface-visibility: hidden;
 }
-#computer.wide { width: 960px; }
+#computer.wide { width: 960px; height: 538px; }
 #computer.on { opacity: 1; }
 #computer[hidden] { display: none; }
 .pc-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; font: 600 12px/1 ui-monospace, Menlo, monospace; }
@@ -1192,7 +1192,7 @@ function buildOffice() {
   const mouse = ball(0.06, CREAM, 0.72, 0.03, 0.55, pc, 0.75, 0.45, 1.15);
   tube(new THREE.CatmullRomCurve3([v(0.72, 0.03, 0.48), v(0.75, 0.02, 0.3), v(0.66, 0.02, 0.2), v(0.55, 0.1, 0.19)]), 0.008, mat('#d9d1c0', 0.6), pc);
   const crtGlow = new THREE.PointLight('#ff9a4a', 3, 3.5, 1.6); crtGlow.position.set(0, 0.8, 0.8); pc.add(crtGlow);
-  halo('#ff8a3a', 1.4, 0, 0.84, 0.15, pc, 0.25);
+  halo('#ff8a3a', 1.4, 0, 0.84, 0.15, pc, 0.1);
   // a modern setup that can stand in for the retro terminal: thin monitor on a stand, flat keyboard, mouse
   const pcModern = new THREE.Group(); pcModern.position.set(0.15, 2.53, -0.35); desk.add(pcModern);
   const MW = mat('#f4eef0', 0.35), MB = mat('#e9c3d0', 0.4);
@@ -1212,15 +1212,20 @@ function buildOffice() {
   // curved gaming monitor: thin black bezel bent around the viewer, white back, a slim neck and a dark v-shaped foot
   // a gentle curve, so the live page (which is flat) still sits flush on the glass when you zoom in
   const R = 7, ARC = 1.6 / R, panelY = 0.98, frontZ = -0.04;
-  const curved = (r, h, m, side) => {
-    const g = new THREE.CylinderGeometry(r, r, h, 48, 1, true, Math.PI - ARC / 2, ARC);
-    const mesh = new THREE.Mesh(g, m); mesh.position.set(0, panelY, frontZ + R); mesh.material.side = side ?? THREE.DoubleSide; mesh.castShadow = true; pcModern.add(mesh); return mesh;
+  // solid curved slabs (an annulus sector stood up on end), so the bezel and back have real edges and thickness
+  const slab = (r0, r1, a, h, m) => {
+    const sh = new THREE.Shape(), N = 32;
+    for (let i = 0; i <= N; i++) { const t = -a / 2 + a * i / N; i ? sh.lineTo(r0 * Math.sin(t), R - r0 * Math.cos(t)) : sh.moveTo(r0 * Math.sin(t), R - r0 * Math.cos(t)); }
+    for (let i = N; i >= 0; i--) { const t = -a / 2 + a * i / N; sh.lineTo(r1 * Math.sin(t), R - r1 * Math.cos(t)); }
+    const g = new THREE.ExtrudeGeometry(sh, { depth: h, bevelEnabled: true, bevelThickness: 0.008, bevelSize: 0.008, bevelSegments: 2, curveSegments: 4 });
+    g.rotateX(-Math.PI / 2); g.translate(0, panelY - h / 2, frontZ - R);
+    const mesh = new THREE.Mesh(g, m); mesh.castShadow = mesh.receiveShadow = true; pcModern.add(mesh); return mesh;
   };
-  const BEZ = new THREE.MeshStandardMaterial({ color: '#141418', roughness: 0.35 });
-  curved(R, 0.92, BEZ);
-  curved(R + 0.04, 0.88, new THREE.MeshStandardMaterial({ color: '#f2f0f2', roughness: 0.4 }));
-  const siteFlip = site; siteFlip.wrapS = THREE.RepeatWrapping; siteFlip.repeat.x = -1;
-  const display = new THREE.Mesh(new THREE.CylinderGeometry(R - 0.004, R - 0.004, 0.84, 48, 1, true, Math.PI - (ARC - 0.04) / 2, ARC - 0.04), new THREE.MeshBasicMaterial({ map: siteFlip, toneMapped: false, side: THREE.BackSide }));
+  slab(R, R + 0.035, ARC, 0.92, new THREE.MeshStandardMaterial({ color: '#141418', roughness: 0.35 }));
+  slab(R + 0.035, R + 0.075, ARC - 0.01, 0.86, new THREE.MeshStandardMaterial({ color: '#f2f0f2', roughness: 0.4 }));
+  // the glass: a curved hole cut through the canvas so the live page behind it shows through
+  const DISP = 1.5 / R;
+  const display = new THREE.Mesh(new THREE.CylinderGeometry(R - 0.004, R - 0.004, 0.84, 48, 1, true, Math.PI - DISP / 2, DISP), new THREE.MeshBasicMaterial({ color: 0x000000 }));
   display.position.set(0, panelY, frontZ + R); pcModern.add(display);
   box(0.5, 0.05, 0.12, mat('#f2f0f2', 0.4), 0, panelY - 0.4, frontZ - 0.12, pcModern, 0.03);
   box(0.5, 0.008, 0.02, new THREE.MeshBasicMaterial({ color: '#7fd3ff', toneMapped: false }), 0, panelY - 0.465, frontZ - 0.01, pcModern, 0);
@@ -1234,6 +1239,9 @@ function buildOffice() {
   ball(0.05, MW, 0.6, 0.03, 0.47, pcModern, 0.8, 0.45, 1.2);
   const pcWrap = new THREE.Group(); desk.add(pcWrap); pcWrap.add(pc); pcWrap.add(pcModern);
   PC = { retro: pc, modern: pcModern, retroScreen: scr, modernScreen: modernScr };
+  // both screens are windows onto the live html, so what you see from across the room is what you get up close
+  const HOLE = side => new THREE.MeshBasicMaterial({ color: 0x000000, opacity: 0, blending: THREE.NoBlending, side });
+  scr.material = HOLE(THREE.FrontSide); display.material = HOLE(THREE.BackSide);
   setPcMode(pcMode);
   projects['computer'] = { group: pcWrap, object: 'Computer', focus: [0.15, 3.32, -0.1], view: [0, 0.12, 2.4], normal: [0, 0, 1], computer: true };
 
@@ -2335,8 +2343,8 @@ const cam = { pos: new THREE.Vector3(9, 8, 14), target: ROOMS.office.center.clon
 const goal = { base: new THREE.Vector3(), pos: new THREE.Vector3(), target: ROOMS.office.center.clone(), offX: 0, offY: 0 };
 // the computer's screen is real html placed exactly on the 3d monitor, like a working computer in the room
 const css3d = new CSS3DRenderer();
-Object.assign(css3d.domElement.style, { position: 'fixed', inset: '0', pointerEvents: 'none', zIndex: '2' });
-document.body.insertBefore(css3d.domElement, $('#panel'));
+Object.assign(css3d.domElement.style, { position: 'fixed', inset: '0', pointerEvents: 'none' });
+document.body.insertBefore(css3d.domElement, canvas);
 const pcObj = new CSS3DObject($('#computer')); pcObj.visible = false; scene.add(pcObj);
 const _sp = new THREE.Vector3(), _sq = new THREE.Quaternion(), _ss = new THREE.Vector3();
 function placeScreen() {
@@ -2524,6 +2532,7 @@ function frame() {
     h.position.copy(h.parent.worldToLocal(w));
   }
   renderer.render(scene, camera);
+  pcObj.visible = room === 'office' && !!PC;
   if (pcObj.visible) { placeScreen(); css3d.render(scene, camera); }
   requestAnimationFrame(frame);
 }
@@ -2602,7 +2611,7 @@ const panel = $('#panel');
 // objects that would block a close-up are hidden while it's open
 const setHidden = (pid, hidden) => (PROJECTS[pid]?.hide || []).forEach(o => { o.visible = !hidden; });
 function open(pid) {
-  if (PROJECTS[pid].computer) { if (current && current !== pid) close(); current = pid; hovered = null; $('#labels').classList.add('hide'); showComputer(pcMode); return; }
+  if (PROJECTS[pid].computer) { if (current && current !== pid) close(); current = pid; hovered = null; $('#labels').classList.add('hide'); canvas.style.pointerEvents = 'none'; showComputer(pcMode); return; }
   if (current) setHidden(current, false);
   setHidden(pid, true);
   current = pid; hovered = null;
@@ -2611,7 +2620,7 @@ function open(pid) {
   setGoal(pid); subChat(pid); renderPanel(); renderChat();
 }
 function close() {
-  if (current === 'computer') { const c = $('#computer'); c.classList.remove('on'); c.hidden = true; pcObj.visible = false; }
+  if (current === 'computer') { canvas.style.pointerEvents = ''; $('#termKey').blur(); }
   if (current) setHidden(current, false);
   current = null;
   panel.classList.remove('open'); panel.inert = true;
@@ -2633,8 +2642,6 @@ const PORTFOLIO = {
     { id: 'rc-car', name: 'RC Car', tags: ['PCB design', 'Firmware', 'Robotics'], text: 'An Ackermann-steering RC car on a two-deck chassis, with a custom controller PCB I’m designing for it.' },
     { id: 'testbench', name: 'Seatback Testbench', tags: ['Test engineering', 'PLC', 'Hardware'], text: 'A DIN-rail test fixture for airplane seatback displays, with relays, a PLC and an interface board.' },
     { id: 'pingu', name: 'Pingu', tags: ['Embedded', 'Haptics', 'RP2040'], text: 'A small haptic buzzer that goes off when Claude Code finishes or needs input. Raspberry Pi Pico + DRV2605L.' },
-    { id: 'ring-mouse', name: 'Ring Mouse', tags: ['IMU', 'BLE', 'ML'], text: 'A finger-mounted Bluetooth mouse that uses an IMU and on-device gesture recognition.' },
-    { id: 'meetsync', name: 'MeetSync', tags: ['Web app', 'UX'], text: 'A When2Meet-style scheduler with three levels of availability and a mobile-first design.' },
   ],
   contact: [['GitHub', 'https://github.com/kristinauh'], ['Email', ''], ['LinkedIn', '']],
 };
@@ -2790,19 +2797,22 @@ function buildNav() { if ($('#siteNav').childElementCount) return; $('#siteNav')
 
 function showComputer(mode) {
   setPcMode(mode);
-  const c = $('#computer'); c.className = mode + (mode === 'modern' ? ' wide' : ''); c.hidden = false; pcObj.visible = true;
+  const c = $('#computer'); c.className = mode + (mode === 'modern' ? ' wide' : '') + ' on'; c.hidden = false;
   placeScreen(); if (current === 'computer') setGoal('computer');
-  requestAnimationFrame(() => c.classList.add('on'));
   $('#pcRetro').classList.toggle('on', mode === 'retro'); $('#pcModern').classList.toggle('on', mode === 'modern');
   $('#pcTitle').textContent = mode === 'retro' ? 'kh@workbench: ~' : PORTFOLIO.name;
   $('#term').hidden = mode !== 'retro'; $('#editor').hidden = true; term.editor = null; $('#os').hidden = mode !== 'modern';
   $('#osClock').textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   if (mode === 'retro') {
     if (!tOut.childElementCount) { tPrint('KH-OS 1.0  (tty1)', 'dim'); tPrint('last login: today from the office chair\n', 'dim'); tPrint("type 'help' to see what you can do, or 'ls' to look around.\n"); }
-    $('#termPrompt').textContent = promptStr(); setTimeout(() => tKey.focus({ preventScroll: true }), 400);
+    $('#termPrompt').textContent = promptStr(); if (current === 'computer') setTimeout(() => tKey.focus({ preventScroll: true }), 400);
   } else { buildNav(); showPage('Home'); }
 }
-function closeComputer() { const c = $('#computer'); c.classList.remove('on'); c.hidden = true; pcObj.visible = false; if (current === 'computer') close(); }
+function closeComputer() { if (current === 'computer') close(); }
+// start with the page already on the monitor (after the rest of the module has loaded)
+setTimeout(() => showComputer(pcMode));
+// while you're using the computer the canvas steps aside so the page gets clicks and scrolling; clicking off it leaves
+addEventListener('pointerdown', e => { if (current === 'computer' && !e.target.closest('#computer')) close(); }, true);
 $('#pcRetro').addEventListener('click', () => showComputer('retro'));
 $('#pcModern').addEventListener('click', () => showComputer('modern'));
 $('#pcClose').addEventListener('click', closeComputer);
