@@ -1254,8 +1254,12 @@ function buildOffice() {
   const KEY = mat('#f1ebdf', 0.5), KEY2 = mat('#cdc4b2', 0.5);
   for (let r = 0; r < 5; r++) for (let c = 0; c < 15; c++) box(0.058, 0.025, 0.055, c > 12 || (r === 0 && c < 2) ? KEY2 : KEY, -0.5 + c * 0.068, 0.062, -0.13 + r * 0.065, kbd, 0.008);
   box(0.4, 0.025, 0.055, KEY, -0.07, 0.062, 0.195, kbd, 0.008);
-  const mouse = ball(0.06, CREAM, 0.72, 0.03, 0.55, pc, 0.75, 0.45, 1.15);
-  tube(new THREE.CatmullRomCurve3([v(0.72, 0.03, 0.48), v(0.75, 0.02, 0.3), v(0.66, 0.02, 0.2), v(0.55, 0.1, 0.19)]), 0.008, mat('#d9d1c0', 0.6), pc);
+  // boxy 80s mouse, sized against the keyboard (about a quarter of its width)
+  const mouse = new THREE.Group(); mouse.position.set(0.76, 0, 0.6); mouse.rotation.y = -0.08; pc.add(mouse);
+  box(0.17, 0.07, 0.27, CREAM, 0, 0.035, 0, mouse, 0.03);
+  box(0.075, 0.012, 0.09, KEY2, -0.04, 0.072, -0.08, mouse, 0.006);
+  box(0.075, 0.012, 0.09, KEY2, 0.04, 0.072, -0.08, mouse, 0.006);
+  tube(new THREE.CatmullRomCurve3([v(0.75, 0.03, 0.46), v(0.76, 0.02, 0.3), v(0.66, 0.02, 0.2), v(0.55, 0.1, 0.19)]), 0.008, mat('#d9d1c0', 0.6), pc);
   const crtGlow = new THREE.PointLight('#ff9a4a', 3, 3.5, 1.6); crtGlow.position.set(0, 0.8, 0.8); pc.add(crtGlow);
   halo('#ff8a3a', 1.4, 0, 0.84, 0.15, pc, 0.1);
   // a modern setup that can stand in for the retro terminal: thin monitor on a stand, flat keyboard, mouse
@@ -1301,7 +1305,7 @@ function buildOffice() {
   const modernScr = screen(1.5, 0.84, site, 0, panelY, frontZ + 0.024, 0, pcModern); modernScr.visible = false;
   box(1.0, 0.025, 0.32, MW, -0.05, 0.012, 0.45, pcModern, 0.012);
   for (let r = 0; r < 4; r++) for (let c = 0; c < 14; c++) box(0.055, 0.012, 0.055, mat('#ffffff', 0.5), -0.5 + c * 0.066, 0.03, 0.34 + r * 0.068, pcModern, 0.008);
-  ball(0.05, MW, 0.6, 0.03, 0.47, pcModern, 0.8, 0.45, 1.2);
+  ball(0.1, MW, 0.66, 0.035, 0.5, pcModern, 0.62, 0.38, 1.0);
   const pcWrap = new THREE.Group(); desk.add(pcWrap); pcWrap.add(pc); pcWrap.add(pcModern);
   PC = { retro: pc, modern: pcModern, retroScreen: scr, modernScreen: modernScr };
   // both screens are windows onto the live html, so what you see from across the room is what you get up close
@@ -1475,6 +1479,18 @@ function buildOffice() {
   box(0.16, 0.05, 0.8, GOLD, 0.2, 1.05, 0, cork, 0.015);
   box(0.03, 0.02, 0.75, LED, 0.25, 1.02, 0, cork, 0);
   box(0.16, 0.03, 0.03, GOLD, 0.1, 0.98, 0, cork, 0.01);
+  // the picture light actually lights the board: a warm spot aimed down, plus a soft fan of light on the cork
+  const pic = new THREE.SpotLight('#ffd6a0', 2.2, 2.6, 0.95, 0.75, 1.4); pic.position.set(0.28, 1.0, 0); cork.add(pic);
+  pic.target.position.set(0.05, -0.5, 0); cork.add(pic.target);
+  const wash = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.0), new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+    map: canvasTex(128, 96, (g, w, h) => {
+      const r = g.createRadialGradient(w / 2, 0, 2, w / 2, 0, w * 0.5); r.addColorStop(0, 'rgba(255,214,160,.5)'); r.addColorStop(0.55, 'rgba(255,200,140,.16)'); r.addColorStop(1, 'rgba(255,200,140,0)');
+      g.fillStyle = r; g.fillRect(0, 0, w, h);
+      // fade in from the top edge too, so the plane never shows a hard line
+      g.globalCompositeOperation = 'destination-in'; const v = g.createLinearGradient(0, 0, 0, h * 0.2); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, '#000'); g.fillStyle = v; g.fillRect(0, 0, w, h);
+    }) }));
+  wash.rotation.y = Math.PI / 2; wash.position.set(0.15, 0.36, 0); wash.renderOrder = 5; cork.add(wash);
+  halo('#ffd6a0', 0.5, 0.26, 1.0, 0, cork, 0.35);
   const photos = [['🎬', '#f7a8c0'], ['🎮', '#a8d8f0'], ['🍸', '#ffd59e'], ['🏺', '#b8e6c9'], ['📚', '#d7b8f0'], ['🎧', '#ffc2a8']];
   photos.forEach(([emo, c], i) => {
     const p = box(0.02, 0.56, 0.42, mat('#ffffff', 0.6), 0.125, 0.33 - Math.floor(i / 3) * 0.68, -0.47 + (i % 3) * 0.47, cork, 0.01);
@@ -2106,7 +2122,10 @@ function buildLab() {
     const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
     const material = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
     const s = { g: c.getContext('2d'), tex, material, kind, bg: pal[0], fg: pal[1], title, phase: rand() * 10, lines: [], bars: Array.from({ length: 10 }, () => rand()), next: 0 };
-    screens.push(s); draw(s, 0); return material;
+    // only about one screen in four animates (titled ones always do); the rest show a still frame, which keeps the room smooth
+    s.anim = !!title || screens.length % 4 === 0;
+    if (!s.anim) s.lines = Array.from({ length: 9 }, () => 10 + rand() * 140);
+    screens.push(s); draw(s, s.phase); return material;
   }
   function draw(s, t) {
     const { g } = s, w = 192, h = 144;
@@ -2147,8 +2166,8 @@ function buildLab() {
   }
   let last = 0;
   TICKS.push({ room: 'lab', fn: t => {
-    if (t - last < 0.08) return; last = t;
-    for (const s of screens) { draw(s, t); s.material.color.setScalar(rand() < 0.015 ? 0.6 : 1); }
+    if (t - last < 0.1) return; last = t;
+    for (const s of screens) if (s.anim) draw(s, t);
   } });
   const randScreen = () => liveScreen(KINDS[Math.floor(rand() * KINDS.length)], PHOSPHOR[Math.floor(rand() * PHOSPHOR.length)]);
 
