@@ -1884,7 +1884,8 @@ function buildWorkshop() {
   [0.58, 0.82].forEach(x => { const gauge = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.018, 10, 24), mat('#d4d6da', 0.2, 0.9)); gauge.position.set(x, -0.2, 0.03); slope.add(gauge); const face = cyl(0.06, 0.06, 0.01, '#1c1a19', x, -0.2, 0.025, slope, 20); face.rotation.x = Math.PI / 2; });
   halo('#ff6a4a', 0.7, 0.7, 0.16, 0.08, slope, 0.25);
   // monitor hood with a deep frame around a light blue screen
-  box(1.55, 1.2, 0.86, CR, 0, 0.95, -0.55, cc, 0.05);
+  // the hood goes all the way down to the bench top so it doesn't hover behind the slope
+  box(1.55, 1.55, 0.86, CR, 0, 0.775, -0.55, cc, 0.05);
   box(1.36, 0.95, 0.04, CR2, 0, 1.0, -0.09, cc, 0.03);
   box(1.18, 0.74, 0.02, DARK, 0, 1.03, -0.07, cc, 0.03);
   const blue = canvasTex(256, 160, (g, w, h) => {
