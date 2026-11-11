@@ -1620,9 +1620,13 @@ function buildWorkshop() {
   // centre workbench: a rounded cream slab on two pedestals, glowing underneath
   const wb = new THREE.Group(); wb.position.set(0.4, 0, 0.6); ROOT.add(wb);
   // longer to the right, so the console computer gets its own end of the bench
-  [-1.55, 2.95].forEach(x => { box(0.3, 2.15, 1.4, CR2, x, 1.08, 0, wb, 0.12); box(0.32, 0.08, 1.2, ORANGE, x, 1.7, 0, wb, 0.03); });
-  box(4.3, 0.08, 1.2, CR, 0.7, 0.6, 0, wb, 0.03);
-  [-0.8, 0, 0.8, 1.6, 2.3].forEach((x, i) => box(0.6, 0.34, 0.9, i % 2 ? PINK : CR, x, 0.82, 0, wb, 0.06));
+  box(0.3, 2.15, 1.4, CR2, -1.55, 1.08, 0, wb, 0.12); box(0.32, 0.08, 1.2, ORANGE, -1.55, 1.7, 0, wb, 0.03);
+  box(3.0, 0.08, 1.2, CR, -0.05, 0.6, 0, wb, 0.03);
+  [-0.8, 0, 0.8].forEach((x, i) => box(0.6, 0.34, 0.9, i % 2 ? PINK : CR, x, 0.82, 0, wb, 0.06));
+  // under the computer the bench is a solid cabinet, so the console reads as built in rather than set on top
+  box(2.1, 2.15, 1.9, CR2, 2.5, 1.075, 0, wb, 0.08);
+  box(2.12, 0.08, 1.92, ORANGE, 2.5, 1.7, 0, wb, 0.03);
+  [-1, 1].forEach(sz => { for (let i = 0; i < 6; i++) box(1.2, 0.03, 0.02, mat('#d5cab2', 0.6), 2.5, 0.45 + i * 0.12, sz * 0.955, wb, 0); });
   box(5.7, 0.16, 2.0, CR, 0.7, 2.23, 0, wb, 0.08);
   box(5.4, 0.03, 1.7, glowM('#ffd9b0'), 0.7, 2.135, 0, wb, 0.01);
   const matTex = canvasTex(256, 160, (g, w, h) => { g.fillStyle = '#f2a6bf'; g.fillRect(0, 0, w, h); g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 1; for (let i = 0; i < w; i += 16) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, h); g.stroke(); } for (let j = 0; j < h; j += 16) { g.beginPath(); g.moveTo(0, j); g.lineTo(w, j); g.stroke(); } });
@@ -1637,7 +1641,7 @@ function buildWorkshop() {
 
   // right half: a retro console computer, a cream monitor hood over a sloped desk of three control panels
   // runs the full depth of the bench: controls at the front edge, the monitor hood at the back edge
-  const cc = new THREE.Group(); cc.position.set(1.95, 2.31, 0); wb.add(cc);
+  const cc = new THREE.Group(); cc.position.set(2.5, 2.29, 0); wb.add(cc);
   const SAGE = mat('#a9b79a', 0.55), KN = mat('#2b2724', 0.4);
   const wedge = new THREE.Shape([new THREE.Vector2(-0.1, 0), new THREE.Vector2(0.98, 0), new THREE.Vector2(0.98, 0.12), new THREE.Vector2(-0.1, 0.35)]);
   const wg = new THREE.ExtrudeGeometry(wedge, { depth: 2.1, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 2 });
