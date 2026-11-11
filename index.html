@@ -348,13 +348,11 @@ body.public #panel .pane[data-pane="overview"] > div:has(#pNotes), body.public #
 body.public #panel .list input { pointer-events: none; }
 /* the office computer: an orange crt terminal you type into, or a clean portfolio website */
 #computer {
-  position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(.96);
-  width: min(860px, 94vw); height: min(600px, 82vh); z-index: 6;
-  display: flex; flex-direction: column; border-radius: 18px; overflow: hidden;
-  opacity: 0; transition: opacity .35s .35s, transform .35s .35s;
-  box-shadow: 0 30px 80px -20px rgba(0,0,0,.55);
+  width: 800px; height: 576px; display: flex; flex-direction: column; overflow: hidden; border-radius: 6px;
+  opacity: 0; transition: opacity .4s .45s; backface-visibility: hidden;
 }
-#computer.on { opacity: 1; transform: translate(-50%, -50%); }
+#computer.wide { width: 960px; }
+#computer.on { opacity: 1; }
 #computer[hidden] { display: none; }
 .pc-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; font: 600 12px/1 ui-monospace, Menlo, monospace; }
 .pc-tools { display: flex; gap: 6px; }
@@ -363,7 +361,7 @@ body.public #panel .list input { pointer-events: none; }
 #pcClose { border: 0; font-size: 18px; padding: 2px 8px; }
 #computer.retro { background: radial-gradient(120% 90% at 50% 40%, #2a1306 0%, #160904 70%, #0c0502 100%); color: #ff9a4a; }
 #computer.retro .pc-bar { background: rgba(255,154,74,.08); border-bottom: 1px solid rgba(255,154,74,.25); }
-#computer.retro::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: 18px;
+#computer.retro::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: 6px;
   background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); box-shadow: inset 0 0 80px rgba(0,0,0,.7); }
 #term, #editor { flex: 1; overflow-y: auto; padding: 16px 18px; font: 15px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace; text-shadow: 0 0 6px rgba(255,140,60,.55); outline: none; }
 #termOut div { white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -545,6 +543,7 @@ body.public #panel .list input { pointer-events: none; }
 import * as THREE from './three.module.min.js';
 import { RoundedBoxGeometry } from './RoundedBoxGeometry.js';
 import { RoomEnvironment } from './RoomEnvironment.js';
+import { CSS3DRenderer, CSS3DObject } from './CSS3DRenderer.js';
 
 const $ = s => document.querySelector(s);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1114,12 +1113,12 @@ function buildOffice() {
     g.fillStyle = '#94677a'; g.font = '400 13px system-ui, sans-serif'; g.fillText('Embedded systems · PCB design · firmware', 24, 116);
     [[24, '#f7d0dc'], [172, '#d8f0ec'], [320, '#efe3c8']].forEach(([x, c]) => { g.fillStyle = c; g.fillRect(x, 150, 136, 100); g.fillStyle = 'rgba(74,36,51,.5)'; g.fillRect(x + 10, 230, 80, 8); });
   });
-  screen(1.4, 0.84, site, 0, 0.98, -0.07, 0, pcModern);
+  const modernScr = screen(1.4, 0.84, site, 0, 0.98, -0.07, 0, pcModern);
   box(1.0, 0.025, 0.32, MW, -0.05, 0.012, 0.45, pcModern, 0.012);
   for (let r = 0; r < 4; r++) for (let c = 0; c < 14; c++) box(0.055, 0.012, 0.055, mat('#ffffff', 0.5), -0.5 + c * 0.066, 0.03, 0.34 + r * 0.068, pcModern, 0.008);
   ball(0.05, MW, 0.6, 0.03, 0.47, pcModern, 0.8, 0.45, 1.2);
   const pcWrap = new THREE.Group(); desk.add(pcWrap); pcWrap.add(pc); pcWrap.add(pcModern);
-  PC = { retro: pc, modern: pcModern };
+  PC = { retro: pc, modern: pcModern, retroScreen: scr, modernScreen: modernScr };
   setPcMode(pcMode);
   projects['computer'] = { group: pcWrap, object: 'Computer', focus: [0.15, 3.32, -0.1], view: [0, 0.12, 2.4], normal: [0, 0, 1], computer: true };
 
@@ -2218,12 +2217,27 @@ function pick(e) {
 // camera: slow full turn around the room in overview, eases in to a project and follows the pointer there
 const cam = { pos: new THREE.Vector3(9, 8, 14), target: ROOMS.office.center.clone(), offX: 0, offY: 0 };
 const goal = { base: new THREE.Vector3(), pos: new THREE.Vector3(), target: ROOMS.office.center.clone(), offX: 0, offY: 0 };
+// the computer's screen is real html placed exactly on the 3d monitor, like a working computer in the room
+const css3d = new CSS3DRenderer();
+Object.assign(css3d.domElement.style, { position: 'fixed', inset: '0', pointerEvents: 'none', zIndex: '2' });
+document.body.insertBefore(css3d.domElement, $('#panel'));
+const pcObj = new CSS3DObject($('#computer')); pcObj.visible = false; scene.add(pcObj);
+const _sp = new THREE.Vector3(), _sq = new THREE.Quaternion(), _ss = new THREE.Vector3();
+function placeScreen() {
+  const s = pcMode === 'retro' ? PC.retroScreen : PC.modernScreen, wPx = pcMode === 'retro' ? 800 : 960;
+  s.updateWorldMatrix(true, false); s.matrixWorld.decompose(_sp, _sq, _ss);
+  const worldW = s.geometry.parameters.width * _ss.x;
+  pcObj.position.copy(_sp).add(new THREE.Vector3(0, 0, 0.012).applyQuaternion(_sq));
+  pcObj.quaternion.copy(_sq); pcObj.scale.setScalar(worldW / wPx);
+  // frame the camera square on to the screen, far enough back that it fills most of the view
+  const p = PROJECTS.computer; p.focus = _sp.toArray(); p.view = new THREE.Vector3(0, 0, worldW * 1.7).applyQuaternion(_sq).toArray();
+}
 const pointer = { x: 0, y: 0 };
 let W = 1, H = 1, fitR = 17, sweepT = 0, dragAngle = 0;
 
 function resize() {
   W = innerWidth; H = innerHeight;
-  renderer.setSize(W, H, false);
+  renderer.setSize(W, H, false); css3d.setSize(W, H);
   camera.aspect = W / H;
   camera.fov = camera.aspect < 1 ? 42 : 30;
   camera.updateProjectionMatrix();
@@ -2249,6 +2263,7 @@ function overviewPos(out) {
 }
 function updateGoal() {
   if (!current) { goal.target.copy(ROOMS[room].center); overviewPos(goal.pos); return; }
+  if (PROJECTS[current]?.computer) { goal.pos.copy(goal.base); return; }
   // nudge the camera in its own plane toward the pointer
   fwd.subVectors(goal.target, goal.base).normalize();
   right.crossVectors(fwd, camera.up).normalize();
@@ -2392,6 +2407,7 @@ function frame() {
     h.position.copy(h.parent.worldToLocal(w));
   }
   renderer.render(scene, camera);
+  if (pcObj.visible) { placeScreen(); css3d.render(scene, camera); }
   requestAnimationFrame(frame);
 }
 resize();
@@ -2469,7 +2485,7 @@ const panel = $('#panel');
 // objects that would block a close-up are hidden while it's open
 const setHidden = (pid, hidden) => (PROJECTS[pid]?.hide || []).forEach(o => { o.visible = !hidden; });
 function open(pid) {
-  if (PROJECTS[pid].computer) { if (current && current !== pid) close(); current = pid; hovered = null; $('#labels').classList.add('hide'); setGoal(pid); showComputer(pcMode); return; }
+  if (PROJECTS[pid].computer) { if (current && current !== pid) close(); current = pid; hovered = null; $('#labels').classList.add('hide'); showComputer(pcMode); return; }
   if (current) setHidden(current, false);
   setHidden(pid, true);
   current = pid; hovered = null;
@@ -2478,7 +2494,7 @@ function open(pid) {
   setGoal(pid); subChat(pid); renderPanel(); renderChat();
 }
 function close() {
-  if (current === 'computer') { const c = $('#computer'); c.classList.remove('on'); c.hidden = true; }
+  if (current === 'computer') { const c = $('#computer'); c.classList.remove('on'); c.hidden = true; pcObj.visible = false; }
   if (current) setHidden(current, false);
   current = null;
   panel.classList.remove('open'); panel.inert = true;
@@ -2638,7 +2654,9 @@ function buildNav() { if ($('#siteNav').childElementCount) return; Object.keys(S
 
 function showComputer(mode) {
   setPcMode(mode);
-  const c = $('#computer'); c.className = mode; c.hidden = false; requestAnimationFrame(() => c.classList.add('on'));
+  const c = $('#computer'); c.className = mode + (mode === 'modern' ? ' wide' : ''); c.hidden = false; pcObj.visible = true;
+  placeScreen(); if (current === 'computer') setGoal('computer');
+  requestAnimationFrame(() => c.classList.add('on'));
   $('#pcRetro').classList.toggle('on', mode === 'retro'); $('#pcModern').classList.toggle('on', mode === 'modern');
   $('#pcTitle').textContent = mode === 'retro' ? 'kh@workbench: ~' : PORTFOLIO.name;
   $('#term').hidden = mode !== 'retro'; $('#editor').hidden = true; term.editor = null; $('#site').hidden = mode !== 'modern';
@@ -2647,7 +2665,7 @@ function showComputer(mode) {
     $('#termPrompt').textContent = promptStr(); setTimeout(() => tKey.focus({ preventScroll: true }), 400);
   } else { buildNav(); showPage('Home'); }
 }
-function closeComputer() { const c = $('#computer'); c.classList.remove('on'); c.hidden = true; if (current === 'computer') close(); }
+function closeComputer() { const c = $('#computer'); c.classList.remove('on'); c.hidden = true; pcObj.visible = false; if (current === 'computer') close(); }
 $('#pcRetro').addEventListener('click', () => showComputer('retro'));
 $('#pcModern').addEventListener('click', () => showComputer('modern'));
 $('#pcClose').addEventListener('click', closeComputer);
