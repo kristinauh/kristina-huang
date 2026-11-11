@@ -346,7 +346,75 @@ button { font: inherit; cursor: pointer; }
 body.public #note, body.public #panel .row, body.public #panel .tabs, body.public #stepForm, body.public #linkForm,
 body.public #panel .pane[data-pane="overview"] > div:has(#pNotes), body.public #panel .x { display: none; }
 body.public #panel .list input { pointer-events: none; }
+/* the office computer: an orange crt terminal you type into, or a clean portfolio website */
+#computer {
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(.96);
+  width: min(860px, 94vw); height: min(600px, 82vh); z-index: 6;
+  display: flex; flex-direction: column; border-radius: 18px; overflow: hidden;
+  opacity: 0; transition: opacity .35s .35s, transform .35s .35s;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,.55);
+}
+#computer.on { opacity: 1; transform: translate(-50%, -50%); }
+#computer[hidden] { display: none; }
+.pc-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; font: 600 12px/1 ui-monospace, Menlo, monospace; }
+.pc-tools { display: flex; gap: 6px; }
+.pc-tools button { font: 600 11px/1 ui-monospace, Menlo, monospace; padding: 6px 10px; border-radius: 8px; border: 1px solid currentColor; background: none; color: inherit; opacity: .7; }
+.pc-tools button.on { opacity: 1; background: rgba(255,255,255,.12); }
+#pcClose { border: 0; font-size: 18px; padding: 2px 8px; }
+#computer.retro { background: radial-gradient(120% 90% at 50% 40%, #2a1306 0%, #160904 70%, #0c0502 100%); color: #ff9a4a; }
+#computer.retro .pc-bar { background: rgba(255,154,74,.08); border-bottom: 1px solid rgba(255,154,74,.25); }
+#computer.retro::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: 18px;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); box-shadow: inset 0 0 80px rgba(0,0,0,.7); }
+#term, #editor { flex: 1; overflow-y: auto; padding: 16px 18px; font: 15px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace; text-shadow: 0 0 6px rgba(255,140,60,.55); outline: none; }
+#termOut div { white-space: pre-wrap; overflow-wrap: anywhere; }
+#termOut .dim { opacity: .65; }
+#termOut .dir { color: #ffd166; }
+#termLine { white-space: pre-wrap; }
+.cur { display: inline-block; width: .6em; height: 1.05em; vertical-align: -2px; background: #ff9a4a; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+#termKey { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+#editor { display: flex; flex-direction: column; padding: 0; }
+#editor[hidden] { display: none; }
+#edHead, #edFoot { padding: 4px 12px; background: #ff9a4a; color: #160904; text-shadow: none; font-weight: 700; white-space: pre; overflow: hidden; }
+#edBody { flex: 1; margin: 0; padding: 12px 16px; white-space: pre-wrap; overflow-y: auto; font: inherit; }
+#computer.modern { background: #fff8fa; color: #4a2433; }
+#computer.modern .pc-bar { background: #f4a9c0; color: #fff; }
+#site { flex: 1; display: flex; flex-direction: column; overflow: hidden; font: 15px/1.6 var(--body); }
+#site[hidden] { display: none; }
+#siteNav { display: flex; gap: 4px; padding: 10px 18px; border-bottom: 1px solid #f2cfda; flex-wrap: wrap; }
+#siteNav button { border: 0; background: none; padding: 8px 12px; border-radius: 999px; font: 700 14px/1 var(--display); color: #94677a; }
+#siteNav button.on { background: #fde0e8; color: #e0567f; }
+#siteMain { flex: 1; overflow-y: auto; padding: 22px 28px 32px; }
+#siteMain h1 { font: 600 32px/1.15 var(--display); margin: 0 0 6px; }
+#siteMain h2 { font: 600 20px/1.2 var(--display); margin: 22px 0 8px; }
+#siteMain .lead { color: #94677a; margin: 0 0 18px; }
+#siteMain .card { border: 1px solid #f2cfda; border-radius: 14px; padding: 14px 16px; margin: 0 0 10px; background: #fff; }
+#siteMain .card h3 { margin: 0 0 2px; font: 600 16px/1.3 var(--display); }
+#siteMain .card .meta { color: #94677a; font-size: 13px; }
+#siteMain .card p { margin: 6px 0 0; }
+#siteMain a { color: #e0567f; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { #computer { transition: none; } .cur { animation: none; } }
+
+/* usability pass: a flat, readable work panel. the glow stays as an accent, but no tilt, no beam, no hud strip,
+   and the steps / files / chat area gets most of the height */
+#panel { top: 16px; bottom: 16px; right: 16px; width: min(440px, calc(100% - 32px)); gap: 8px; overflow: hidden; }
+#panel, #panel.open { transform-origin: 50% 50%; }
+#panel:not(.open) { transform: translateX(calc(100% + 40px)); }
+#panel.open { transform: none; animation: none; }
+#panel::after { content: none; }
+#panel .hud { display: none; }
+#panel .phead { padding: 12px 14px; }
+#panel #pName { font-family: var(--display); text-transform: none; letter-spacing: .01em; font-size: 22px; }
+#panel #pName::before { content: none; }
+#panel .phead::after { animation: none; display: none; }
+#panel .row { flex-wrap: nowrap; gap: 8px; padding: 8px 10px; }
+#panel .row #copyPrompt { margin-left: auto; white-space: nowrap; font-size: 12px; padding: 6px 10px; }
+#panel .pane.on { flex: 1; min-height: 0; padding: 14px; }
+#panel :is(.phead, .hud, .pane.on, .row) { animation: none; box-shadow: 0 0 1px rgba(190, 240, 255, .8), 0 0 10px rgba(90, 195, 255, .35); background: linear-gradient(160deg, rgba(14, 40, 70, .92), rgba(8, 22, 42, .95)); }
+#panel, #panel #pTag, #panel h3 { text-shadow: none; }
+@media (max-width: 640px) { #panel { top: auto; left: 0; right: 0; bottom: 0; width: auto; height: 70%; } #panel:not(.open) { transform: translateY(110%); } }
 </style>
+
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGcgZmlsbD0iI2U0ZTZlYyI+CiAgICA8cmVjdCB4PSIyIiB5PSIxMyIgd2lkdGg9IjkiIGhlaWdodD0iNSIgcng9IjEuNSIvPjxyZWN0IHg9IjIiIHk9IjIzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+PHJlY3QgeD0iMiIgeT0iMzMiIHdpZHRoPSI5IiBoZWlnaHQ9IjUiIHJ4PSIxLjUiLz48cmVjdCB4PSIyIiB5PSI0MyIgd2lkdGg9IjkiIGhlaWdodD0iNSIgcng9IjEuNSIvPgogICAgPHJlY3QgeD0iNTMiIHk9IjEzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+PHJlY3QgeD0iNTMiIHk9IjIzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+PHJlY3QgeD0iNTMiIHk9IjMzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+PHJlY3QgeD0iNTMiIHk9IjQzIiB3aWR0aD0iOSIgaGVpZ2h0PSI1IiByeD0iMS41Ii8+CiAgPC9nPgogIDxyZWN0IHg9IjgiIHk9IjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI1NCIgcng9IjgiIGZpbGw9IiNkOTcyOWEiLz4KICA8cmVjdCB4PSI4IiB5PSI1IiB3aWR0aD0iNDgiIGhlaWdodD0iNTAiIHJ4PSI4IiBmaWxsPSIjZjI5YmJkIi8+CiAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxMyIgcj0iMyIgZmlsbD0iI2Q5NzI5YSIvPgogIDxwYXRoIGQ9Ik0xOSAyNCBWMzkgTTE5IDMzIEwyNyAyNCBNMjIuNSAzMCBMMjggMzkgTTM0IDI0IFYzOSBNNDUgMjQgVjM5IE0zNCAzMS41IEg0NSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmNmY5IiBzdHJva2Utb3BhY2l0eT0iLjkyIiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InNxdWFyZSIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIvPgogIDxwYXRoIGQ9Ik0xOSA0NSBIMjYgTTI5IDQ1IEgzMyBNMzYgNDUgSDQ1IiBzdHJva2U9IiNmZmY2ZjkiIHN0cm9rZS1vcGFjaXR5PSIuNTUiIHN0cm9rZS13aWR0aD0iMS42Ii8+Cjwvc3ZnPgo=">
 </head>
 <body>
@@ -357,6 +425,26 @@ body.public #panel .list input { pointer-events: none; }
 </header>
 
 <div id="labels"></div>
+
+<div id="computer" hidden>
+  <div class="pc-bar">
+    <span id="pcTitle">kh@workbench: ~</span>
+    <span class="pc-tools">
+      <button id="pcRetro" type="button">Terminal</button><button id="pcModern" type="button">Website</button>
+      <button id="pcClose" type="button" aria-label="Close computer">×</button>
+    </span>
+  </div>
+  <div id="term" tabindex="0" aria-label="Terminal. Type help and press Enter.">
+    <div id="termOut"></div>
+    <div id="termLine"><span id="termPrompt"></span><span id="termIn"></span><span class="cur"></span></div>
+    <input id="termKey" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal input">
+  </div>
+  <div id="editor" hidden><div id="edHead"></div><pre id="edBody"></pre><div id="edFoot"></div></div>
+  <div id="site" hidden>
+    <nav id="siteNav"></nav>
+    <main id="siteMain"></main>
+  </div>
+</div>
 
 <aside id="panel" inert aria-label="Project">
   <div class="phead">
@@ -791,6 +879,13 @@ const haloTex = canvasTex(128, 128, (g, w, h) => {
   r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.25, 'rgba(255,255,255,.45)'); r.addColorStop(1, 'rgba(255,255,255,0)');
   g.fillStyle = r; g.fillRect(0, 0, w, h);
 });
+// which computer sits on the office desk: the retro orange terminal or a modern monitor with the portfolio site
+let PC = null, pcMode = 'retro';
+try { pcMode = localStorage.getItem('pcMode') === 'modern' ? 'modern' : 'retro'; } catch {}
+function setPcMode(m) {
+  pcMode = m; try { localStorage.setItem('pcMode', m); } catch {}
+  if (PC) { PC.retro.visible = m === 'retro'; PC.modern.visible = m === 'modern'; }
+}
 const HALOS = [];
 function halo(color, size, x, y, z, parent = ROOT, opacity = 0.55) {
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
@@ -1004,6 +1099,29 @@ function buildOffice() {
   for (let i = 0; i < 4; i++) box(0.05, 0.05, 0.02, new THREE.MeshBasicMaterial({ color: ['#ff9a4a', '#ffd166', '#9fe8a8', '#ff9a4a'][i], toneMapped: false }), -0.58 + i * 0.1, -0.03, 0.012, keys, 0.008);
   const crtGlow = new THREE.PointLight('#ff9a4a', 3, 3.5, 1.6); crtGlow.position.set(0, 0.6, 0.8); pc.add(crtGlow);
   halo('#ff8a3a', 1.5, 0, 0.68, 0.3, pc, 0.3);
+  // a modern setup that can stand in for the retro terminal: thin monitor on a stand, flat keyboard, mouse
+  const pcModern = new THREE.Group(); pcModern.position.set(0.15, 2.53, -0.35); desk.add(pcModern);
+  const MW = mat('#f4eef0', 0.35), MB = mat('#e9c3d0', 0.4);
+  box(0.5, 0.03, 0.34, MW, 0, 0.015, -0.1, pcModern, 0.015);
+  box(0.08, 0.62, 0.05, MW, 0, 0.33, -0.16, pcModern, 0.02);
+  box(1.5, 0.92, 0.05, MB, 0, 0.98, -0.1, pcModern, 0.04);
+  const site = canvasTex(480, 290, (g, w, h) => {
+    g.fillStyle = '#fff8fa'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#f4a9c0'; g.fillRect(0, 0, w, 34);
+    g.fillStyle = '#ffffff'; g.font = '700 16px system-ui, sans-serif'; g.fillText('Kristina Huang', 14, 23);
+    g.font = '600 11px system-ui, sans-serif'; ['About', 'Experience', 'Projects', 'Contact'].forEach((t, i) => g.fillText(t, 230 + i * 62, 22));
+    g.fillStyle = '#4a2433'; g.font = '700 26px system-ui, sans-serif'; g.fillText('Hi, I’m Kristina.', 24, 90);
+    g.fillStyle = '#94677a'; g.font = '400 13px system-ui, sans-serif'; g.fillText('Embedded systems · PCB design · firmware', 24, 116);
+    [[24, '#f7d0dc'], [172, '#d8f0ec'], [320, '#efe3c8']].forEach(([x, c]) => { g.fillStyle = c; g.fillRect(x, 150, 136, 100); g.fillStyle = 'rgba(74,36,51,.5)'; g.fillRect(x + 10, 230, 80, 8); });
+  });
+  screen(1.4, 0.84, site, 0, 0.98, -0.07, 0, pcModern);
+  box(1.0, 0.025, 0.32, MW, -0.05, 0.012, 0.45, pcModern, 0.012);
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 14; c++) box(0.055, 0.012, 0.055, mat('#ffffff', 0.5), -0.5 + c * 0.066, 0.03, 0.34 + r * 0.068, pcModern, 0.008);
+  ball(0.05, MW, 0.6, 0.03, 0.47, pcModern, 0.8, 0.45, 1.2);
+  const pcWrap = new THREE.Group(); desk.add(pcWrap); pcWrap.add(pc); pcWrap.add(pcModern);
+  PC = { retro: pc, modern: pcModern };
+  setPcMode(pcMode);
+  projects['computer'] = { group: pcWrap, object: 'Computer', focus: [0.15, 3.32, -0.1], view: [0, 0.12, 2.4], normal: [0, 0, 1], computer: true };
 
   // dark bookcase on the side wall; it swings out on a hinge to reveal the passage to the control room
   box(0.03, 6.0, 2.6, mat('#120d10', 1), -4.21, 3.0, -3.9, ROOT, 0);
@@ -1612,18 +1730,24 @@ function buildWorkshop() {
     if (sz < 0) { const motor = cyl(0.035, 0.035, 0.14, mat('#8f9196', 0.3, 0.8), -sx * 0.12, 0, 0, w, 14); motor.rotation.z = Math.PI / 2; }
   });
   box(0.1, 0.07, 0.16, mat('#2a2826', 0.5), 0, 0.08, 0.36, car, 0.01);
-  const pcbB = new THREE.Group(); pcbB.position.set(0, 0.33, -0.03); car.add(pcbB);
-  box(0.46, 0.016, 0.62, mat('#111114', 0.35), 0, 0.01, 0, pcbB, 0.006);
-  box(0.03, 0.03, 0.42, mat('#1e1e22', 0.5), -0.19, 0.03, -0.02, pcbB, 0.004);
-  for (let i = 0; i < 14; i++) box(0.008, 0.03, 0.008, mat('#e3c06a', 0.3, 0.8), -0.19, 0.05, -0.21 + i * 0.03, pcbB, 0);
+  // the controller board sits over the rear half of the upper deck on standoffs: a wide black board with
+  // chamfered corners, a header row along one side, a tall heatsink at the back corner and a blue terminal block
+  const pcbB = new THREE.Group(); pcbB.position.set(0, 0.36, -0.17); car.add(pcbB);
+  const bs = new THREE.Shape([[-0.25, -0.26], [0.25, -0.26], [0.27, -0.22], [0.27, 0.12], [0.2, 0.26], [-0.2, 0.26], [-0.27, 0.12], [-0.27, -0.22]].map(([x, z]) => new THREE.Vector2(x, z)));
+  const bg = new THREE.ExtrudeGeometry(bs, { depth: 0.014, bevelEnabled: false }); bg.rotateX(Math.PI / 2); bg.translate(0, 0.014, 0);
+  const board = new THREE.Mesh(bg, mat('#111114', 0.35)); board.castShadow = board.receiveShadow = true; pcbB.add(board);
+  [[-0.22, -0.2], [0.22, -0.2], [-0.22, 0.18], [0.22, 0.18]].forEach(([x, z]) => cyl(0.008, 0.008, 0.05, BRASS, x, -0.025, z, pcbB, 8));
+  box(0.03, 0.03, 0.4, mat('#1e1e22', 0.5), -0.23, 0.03, -0.02, pcbB, 0.004);
+  for (let i = 0; i < 13; i++) box(0.008, 0.03, 0.008, mat('#e3c06a', 0.3, 0.8), -0.23, 0.05, -0.2 + i * 0.03, pcbB, 0);
   const HS = mat('#16161a', 0.4, 0.4);
-  box(0.14, 0.02, 0.12, HS, 0.12, 0.028, -0.2, pcbB, 0.004);
-  for (let i = 0; i < 6; i++) box(0.012, 0.1, 0.12, HS, 0.07 + i * 0.02, 0.08, -0.2, pcbB, 0.002);
-  box(0.06, 0.012, 0.06, mat('#2a2a2e', 0.5), -0.04, 0.024, 0.02, pcbB, 0.003);
-  box(0.04, 0.01, 0.04, mat('#2a2a2e', 0.5), 0.08, 0.022, 0.08, pcbB, 0.003);
-  box(0.06, 0.04, 0.14, mat('#2d6fd0', 0.45), 0.16, 0.035, 0.12, pcbB, 0.005);
-  box(0.1, 0.03, 0.04, mat('#f2f0ea', 0.5), -0.05, 0.03, 0.27, pcbB, 0.004);
-  ball(0.008, glowM('#7dff9a'), 0.0, 0.026, -0.08, pcbB);
+  box(0.12, 0.02, 0.12, HS, 0.15, 0.025, -0.18, pcbB, 0.004);
+  for (let i = 0; i < 5; i++) box(0.012, 0.14, 0.12, HS, 0.1 + i * 0.025, 0.1, -0.18, pcbB, 0.002);
+  box(0.07, 0.012, 0.07, mat('#2a2a2e', 0.5), -0.04, 0.02, -0.02, pcbB, 0.003);
+  box(0.045, 0.01, 0.045, mat('#2a2a2e', 0.5), 0.08, 0.019, 0.06, pcbB, 0.003);
+  [[-0.12, 0.12], [0.0, 0.16], [0.1, -0.06]].forEach(([x, z]) => box(0.03, 0.01, 0.015, mat('#c8455a', 0.5), x, 0.019, z, pcbB, 0.002));
+  box(0.06, 0.045, 0.13, mat('#2d6fd0', 0.45), 0.2, 0.036, 0.06, pcbB, 0.005);
+  box(0.09, 0.03, 0.04, mat('#f2f0ea', 0.5), -0.08, 0.029, 0.22, pcbB, 0.004);
+  ball(0.008, glowM('#7dff9a'), 0.02, 0.022, -0.1, pcbB);
   projects['rc-car'] = { group: rcG, object: 'RC car in the project wall', focus: [-4.2, YC + rows[1], ZC], view: [3.0, 0.3, 0.2], normal: [1, 0, 0] };
 
   // other projects, also floating: a pink pcb, the ring mouse, a small robot arm
@@ -2074,7 +2198,7 @@ ROOT = scene;
 let room = 'office';
 ROOMS.office.group.visible = true;
 applyLight();
-const NAMES = { 'home-hub': 'Home Hub', 'rank-everything': 'Rank Everything', 'pingu': 'Pingu', 'outfit-app': 'Outfit App', school: 'School', work: 'Work', 'rc-car': 'RC Car', testbench: 'Seatback Testbench' };
+const NAMES = { 'home-hub': 'Home Hub', 'rank-everything': 'Rank Everything', 'pingu': 'Pingu', 'outfit-app': 'Outfit App', school: 'School', work: 'Work', 'rc-car': 'RC Car', testbench: 'Seatback Testbench', computer: 'Computer' };
 
 // picking: projects and doors in the room that's showing
 Object.entries(PROJECTS).forEach(([id, p]) => { p.group.userData.pid = id; p.scale = 1; p.baseScale = p.group.scale.x; });
@@ -2114,8 +2238,8 @@ function setGoal(pid) {
   // pull back a little on phones, but not so far the camera ends up behind the desk
   const portrait = camera.aspect < 1 ? Math.min(1.25, Math.max(1, 0.7 / camera.aspect)) : 1;
   goal.base.set(...p.view).multiplyScalar(portrait).add(goal.target);
-  goal.offX = isSheet() ? 0 : 206;
-  goal.offY = isSheet() ? H * 0.32 : 0;
+  goal.offX = isSheet() || p.computer ? 0 : 228;
+  goal.offY = isSheet() && !p.computer ? H * 0.32 : 0;
 }
 const right = new THREE.Vector3(), up = new THREE.Vector3(), fwd = new THREE.Vector3();
 function overviewPos(out) {
@@ -2229,7 +2353,7 @@ addEventListener('pointerup', e => {
   else if (hit) open(hit);
   else if (current) close();
 });
-addEventListener('keydown', e => { if (e.key === 'Escape' && current) close(); });
+addEventListener('keydown', e => { if (e.key === 'Escape' && current && !term.editor) close(); });
 addEventListener('resize', resize);
 
 // render loop
@@ -2345,6 +2469,7 @@ const panel = $('#panel');
 // objects that would block a close-up are hidden while it's open
 const setHidden = (pid, hidden) => (PROJECTS[pid]?.hide || []).forEach(o => { o.visible = !hidden; });
 function open(pid) {
+  if (PROJECTS[pid].computer) { if (current && current !== pid) close(); current = pid; hovered = null; $('#labels').classList.add('hide'); setGoal(pid); showComputer(pcMode); return; }
   if (current) setHidden(current, false);
   setHidden(pid, true);
   current = pid; hovered = null;
@@ -2353,6 +2478,7 @@ function open(pid) {
   setGoal(pid); subChat(pid); renderPanel(); renderChat();
 }
 function close() {
+  if (current === 'computer') { const c = $('#computer'); c.classList.remove('on'); c.hidden = true; }
   if (current) setHidden(current, false);
   current = null;
   panel.classList.remove('open'); panel.inert = true;
@@ -2360,6 +2486,172 @@ function close() {
   setGoal(null);
 }
 $('#close').addEventListener('click', close);
+// portfolio content shown on the office computer, in the terminal and on the website. edit freely
+const PORTFOLIO = {
+  name: 'Kristina Huang',
+  tagline: 'ECE graduate student at Carnegie Mellon. Embedded systems, PCB design, firmware and hardware bring-up.',
+  about: 'I’m an Electrical and Computer Engineering graduate student at Carnegie Mellon University. I like working across the whole stack, from schematics and board layout to firmware and the interface on top. Lately I’ve been especially into hardware bring-up and chip design.',
+  education: [{ school: 'Carnegie Mellon University', degree: 'M.S. Electrical and Computer Engineering', when: 'In progress' }],
+  experience: [
+    { id: 'panasonic-2026', role: 'Hardware Engineering Intern', org: 'Panasonic Avionics', when: 'Summer 2026', text: 'Designed and built a DIN-rail testbench for testing airplane seatback monitors.' },
+    { id: 'panasonic-2025', role: 'Electrical Engineering Intern', org: 'Panasonic Avionics', when: 'Summer 2025', text: 'Details coming soon.' },
+  ],
+  projects: [
+    { id: 'rc-car', name: 'RC Car', text: 'An Ackermann-steering RC car on a two-deck chassis, with a custom controller PCB I’m designing for it.' },
+    { id: 'testbench', name: 'Seatback Testbench', text: 'A DIN-rail test fixture for airplane seatback displays, with relays, a PLC and an interface board.' },
+    { id: 'pingu', name: 'Pingu', text: 'A small haptic buzzer that goes off when Claude Code finishes or needs input. Raspberry Pi Pico + DRV2605L.' },
+    { id: 'ring-mouse', name: 'Ring Mouse', text: 'A finger-mounted Bluetooth mouse that uses an IMU and on-device gesture recognition.' },
+    { id: 'meetsync', name: 'MeetSync', text: 'A When2Meet-style scheduler with three levels of availability and a mobile-first design.' },
+  ],
+  contact: [['GitHub', 'https://github.com/kristinauh'], ['Email', ''], ['LinkedIn', '']],
+};
+
+// a tiny file system built from the portfolio, for ls / cd / cat / nano / vim
+const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const FS = {
+  'README.txt': `welcome to ${PORTFOLIO.name.toLowerCase()}'s workbench.\ntry: ls, cat about.txt, cd projects, nano rc-car.md, help`,
+  'about.txt': `${PORTFOLIO.name}\n${PORTFOLIO.tagline}\n\n${PORTFOLIO.about}`,
+  'education.txt': PORTFOLIO.education.map(e => `${e.school}\n${e.degree}  (${e.when})`).join('\n\n'),
+  'contact.txt': PORTFOLIO.contact.map(([k, v]) => `${k.padEnd(10)}${v || '(coming soon)'}`).join('\n'),
+  experience: Object.fromEntries(PORTFOLIO.experience.map(x => [x.id + '.txt', `${x.role}\n${x.org}  ·  ${x.when}\n\n${x.text}`])),
+  projects: Object.fromEntries(PORTFOLIO.projects.map(p => [p.id + '.md', `# ${p.name}\n\n${p.text}\n\n(open ${p.id} to see it in the room)`])),
+};
+const term = { cwd: [], hist: [], hi: 0, editor: null };
+const tOut = $('#termOut'), tIn = $('#termIn'), tKey = $('#termKey');
+const cwdNode = () => term.cwd.reduce((n, d) => n[d], FS);
+const promptStr = () => `kh@workbench:~${term.cwd.length ? '/' + term.cwd.join('/') : ''}$ `;
+function tPrint(text, cls) { const d = el('div', cls, text); tOut.append(d); $('#term').scrollTop = 1e9; return d; }
+function resolve(path) {
+  if (!path) return { node: cwdNode(), parts: term.cwd };
+  const parts = path.startsWith('~') || path.startsWith('/') ? [] : [...term.cwd];
+  for (const p of path.replace(/^~\/?|^\//, '').split('/').filter(Boolean)) {
+    if (p === '..') parts.pop(); else if (p !== '.') parts.push(p);
+  }
+  let node = FS;
+  for (const p of parts) { if (node && typeof node === 'object' && p in node) node = node[p]; else return { node: undefined, parts }; }
+  return { node, parts };
+}
+function openEditor(name, text, kind) {
+  term.editor = kind; $('#term').hidden = true; const ed = $('#editor'); ed.hidden = false;
+  $('#edHead').textContent = kind === 'nano' ? `  GNU nano 7.2          ${name}` : `"${name}" ${text.split('\n').length}L, ${text.length}B`;
+  $('#edBody').textContent = text;
+  $('#edFoot').textContent = kind === 'nano' ? '^X Exit    ^O Write Out    ^W Where Is    (read only)' : '-- read only --   type :q and press enter to quit';
+  term.vimCmd = ''; tKey.focus();
+}
+function closeEditor() { term.editor = null; $('#editor').hidden = true; $('#term').hidden = false; tKey.focus(); }
+const CMDS = {
+  help: () => tPrint('ls [dir]      list files\ncd <dir>      change directory\ncat <file>    print a file\nnano <file>   open a file in nano (ctrl+x to exit)\nvim <file>    open a file in vim (:q to quit)\nopen <proj>   go see a project in the room\nwhoami        who is this\nstartx        switch to the website view\nclear         clear the screen\nexit          leave the computer'),
+  ls: a => {
+    const { node } = resolve(a[0]);
+    if (node === undefined) return tPrint(`ls: cannot access '${a[0]}': No such file or directory`);
+    if (typeof node === 'string') return tPrint(a[0]);
+    const line = tPrint(''); Object.entries(node).forEach(([k, v]) => line.append(el('span', typeof v === 'object' ? 'dir' : '', (typeof v === 'object' ? k + '/' : k) + '   ')));
+  },
+  cd: a => {
+    const { node, parts } = resolve(a[0] || '~');
+    if (node === undefined) return tPrint(`cd: ${a[0]}: No such file or directory`);
+    if (typeof node === 'string') return tPrint(`cd: ${a[0]}: Not a directory`);
+    term.cwd = parts;
+  },
+  pwd: () => tPrint('/home/kh' + (term.cwd.length ? '/' + term.cwd.join('/') : '')),
+  cat: a => {
+    if (!a[0]) return tPrint('cat: missing file operand');
+    const { node } = resolve(a[0]);
+    if (node === undefined) return tPrint(`cat: ${a[0]}: No such file or directory`);
+    if (typeof node === 'object') return tPrint(`cat: ${a[0]}: Is a directory`);
+    tPrint(node);
+  },
+  nano: (a, kind = 'nano') => {
+    if (!a[0]) return tPrint(`${kind}: missing file name`);
+    const { node } = resolve(a[0]);
+    if (node === undefined) return tPrint(`${kind}: ${a[0]}: No such file`);
+    if (typeof node === 'object') return tPrint(`${kind}: ${a[0]}: Is a directory`);
+    openEditor(a[0].split('/').pop(), node, kind);
+  },
+  vim: a => CMDS.nano(a, 'vim'), vi: a => CMDS.nano(a, 'vim'), less: a => CMDS.cat(a), more: a => CMDS.cat(a),
+  whoami: () => tPrint(`${PORTFOLIO.name} — ${PORTFOLIO.tagline}`),
+  echo: a => tPrint(a.join(' ')),
+  clear: () => tOut.replaceChildren(),
+  startx: () => { tPrint('starting graphical session…', 'dim'); setTimeout(() => showComputer('modern'), 400); },
+  open: a => {
+    const id = (a[0] || '').replace(/\.md$/, ''), p = PROJECTS[id];
+    if (!p || p.computer) return tPrint(`open: ${a[0] || ''}: no such project. try ls projects`);
+    closeComputer();
+    if (p.room === room) open(id); else { goRoom(p.room); setTimeout(() => open(id), 1100); }
+  },
+  exit: () => closeComputer(),
+  sudo: () => tPrint('nice try.'),
+};
+function runCmd(line) {
+  tPrint(promptStr() + line);
+  const [c, ...a] = line.trim().split(/\s+/);
+  if (!c) return;
+  term.hist.push(line); term.hi = term.hist.length;
+  (CMDS[c] || (() => tPrint(`${c}: command not found. type help`)))(a);
+}
+function complete(v) {
+  const parts = v.split(/\s+/), last = parts.pop() || '', dir = last.includes('/') ? last.slice(0, last.lastIndexOf('/') + 1) : '';
+  const { node } = resolve(dir || undefined);
+  if (!node || typeof node !== 'object') return v;
+  const hits = Object.keys(node).filter(k => k.startsWith(last.slice(dir.length)));
+  if (hits.length !== 1) { if (hits.length) tPrint(hits.join('   ')); return v; }
+  return [...parts, dir + hits[0] + (typeof node[hits[0]] === 'object' ? '/' : '')].join(' ');
+}
+tKey.addEventListener('input', () => { tIn.textContent = tKey.value; });
+tKey.addEventListener('keydown', e => {
+  if (term.editor === 'nano') { if (e.ctrlKey && e.key.toLowerCase() === 'x') { e.preventDefault(); closeEditor(); } return; }
+  if (term.editor === 'vim') {
+    if (e.key === 'Enter') { if (/^:q!?$|^:wq$|^:x$/.test(term.vimCmd)) closeEditor(); term.vimCmd = ''; $('#edFoot').textContent = '-- read only --   type :q and press enter to quit'; }
+    else if (e.key === 'Escape') term.vimCmd = '';
+    else if (e.key.length === 1) { term.vimCmd += e.key; $('#edFoot').textContent = term.vimCmd; }
+    else if (e.key === 'Backspace') term.vimCmd = term.vimCmd.slice(0, -1);
+    e.preventDefault(); return;
+  }
+  if (e.key === 'Enter') { runCmd(tKey.value); tKey.value = ''; tIn.textContent = ''; $('#termPrompt').textContent = promptStr(); }
+  else if (e.key === 'Tab') { e.preventDefault(); tKey.value = complete(tKey.value); tIn.textContent = tKey.value; }
+  else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    e.preventDefault(); term.hi = Math.max(0, Math.min(term.hist.length, term.hi + (e.key === 'ArrowUp' ? -1 : 1)));
+    tKey.value = term.hist[term.hi] || ''; tIn.textContent = tKey.value;
+  } else if (e.ctrlKey && e.key.toLowerCase() === 'l') { e.preventDefault(); tOut.replaceChildren(); }
+});
+$('#term').addEventListener('click', () => tKey.focus());
+$('#editor').addEventListener('click', () => tKey.focus());
+
+// the modern view: a plain portfolio website you click through
+const SITE = {
+  Home: m => { m.append(el('h1', '', `Hi, I’m ${PORTFOLIO.name.split(' ')[0]}.`), el('p', 'lead', PORTFOLIO.tagline), el('p', '', PORTFOLIO.about)); },
+  Experience: m => PORTFOLIO.experience.forEach(x => { const c = el('div', 'card'); c.append(el('h3', '', x.role), el('div', 'meta', `${x.org} · ${x.when}`), el('p', '', x.text)); m.append(c); }),
+  Projects: m => PORTFOLIO.projects.forEach(p => {
+    const c = el('div', 'card'); c.append(el('h3', '', p.name), el('p', '', p.text));
+    if (PROJECTS[p.id]) { const a = el('a', '', 'See it in the room →'); a.href = '#'; a.addEventListener('click', e => { e.preventDefault(); CMDS.open([p.id]); }); const pp = el('p'); pp.append(a); c.append(pp); }
+    m.append(c);
+  }),
+  Education: m => PORTFOLIO.education.forEach(x => { const c = el('div', 'card'); c.append(el('h3', '', x.school), el('div', 'meta', `${x.degree} · ${x.when}`)); m.append(c); }),
+  Contact: m => PORTFOLIO.contact.forEach(([k, v]) => { const c = el('div', 'card'); c.append(el('h3', '', k)); if (v) { const a = el('a', '', v.replace(/^https?:\/\//, '')); a.href = v; a.target = '_blank'; a.rel = 'noopener'; c.append(a); } else c.append(el('div', 'meta', 'Coming soon')); m.append(c); }),
+};
+function showPage(name) {
+  $('#siteNav').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.textContent === name));
+  const m = $('#siteMain'); m.replaceChildren(); SITE[name](m); m.scrollTop = 0;
+}
+// built on first use, since the shared el() helper is defined further down
+function buildNav() { if ($('#siteNav').childElementCount) return; Object.keys(SITE).forEach(n => { const b = el('button', '', n); b.type = 'button'; b.addEventListener('click', () => showPage(n)); $('#siteNav').append(b); }); }
+
+function showComputer(mode) {
+  setPcMode(mode);
+  const c = $('#computer'); c.className = mode; c.hidden = false; requestAnimationFrame(() => c.classList.add('on'));
+  $('#pcRetro').classList.toggle('on', mode === 'retro'); $('#pcModern').classList.toggle('on', mode === 'modern');
+  $('#pcTitle').textContent = mode === 'retro' ? 'kh@workbench: ~' : PORTFOLIO.name;
+  $('#term').hidden = mode !== 'retro'; $('#editor').hidden = true; term.editor = null; $('#site').hidden = mode !== 'modern';
+  if (mode === 'retro') {
+    if (!tOut.childElementCount) { tPrint('KH-OS 1.0  (tty1)', 'dim'); tPrint('last login: today from the office chair\n', 'dim'); tPrint("type 'help' to see what you can do, or 'ls' to look around.\n"); }
+    $('#termPrompt').textContent = promptStr(); setTimeout(() => tKey.focus({ preventScroll: true }), 400);
+  } else { buildNav(); showPage('Home'); }
+}
+function closeComputer() { const c = $('#computer'); c.classList.remove('on'); c.hidden = true; if (current === 'computer') close(); }
+$('#pcRetro').addEventListener('click', () => showComputer('retro'));
+$('#pcModern').addEventListener('click', () => showComputer('modern'));
+$('#pcClose').addEventListener('click', closeComputer);
+
 
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
