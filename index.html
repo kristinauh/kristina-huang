@@ -1461,7 +1461,7 @@ function buildWorkshop() {
   [0.2, 2.6].forEach(z => box(0.02, 6.6, 0.02, CR2, -4.795, 3.3, z, ROOT, 0));
   // rounded soffit along the top with a warm light strip under it, following the corner
   const path = (off, y) => {
-    const pts = [v(5.55, y, -4.0 + off), v(1.0, y, -4.0 + off), v(-2.8, y, -4.0 + off)];
+    const pts = [v(3.05, y, -4.0 + off), v(1.0, y, -4.0 + off), v(-2.8, y, -4.0 + off)];
     for (let i = 1; i < 12; i++) { const a = Math.PI / 2 + (i / 12) * Math.PI / 2; pts.push(v(-2.8 + Math.cos(a) * (2.0 - off), y, -2.0 - Math.sin(a) * (2.0 - off))); }
     pts.push(v(-4.8 + off, y, -2.0), v(-4.8 + off, y, 1.0), v(-4.8 + off, y, 3.8));
     return new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.05);
@@ -1472,7 +1472,8 @@ function buildWorkshop() {
   const cove = new THREE.PointLight('#ffd9b0', 6, 12, 1.4); cove.position.set(-1.5, 5.8, -1.5); ROOT.add(cove);
 
   // hatch back to the control room
-  hatchWall(4.3, -4.2, Math.PI / 2, 0.4, 2.5, 6.8, CR, 'lab');
+  // same floating hatch as the one in the control room, standing in line with the back wall
+  floatHatch(4.4, -4.2, Math.PI / 2, 'lab', 'workshop');
 
   // back wall: a built-in counter, 3d printers on the left, instrument modules above, tools on top
   box(5.4, 2.18, 1.0, CR2, 0.2, 1.09, -3.5, ROOT, 0.04);
