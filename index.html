@@ -987,10 +987,158 @@ function halo(color, size, x, y, z, parent = ROOT, opacity = 0.55) {
 }
 
 // each room builds into its own group; the door swaps which one is showing
+// kitchen: warm plaster walls, tall fluted walnut cabinets with a quartzite niche lit from underneath, a waterfall
+// quartzite island with upholstered stools, glass-and-brass pendants, and a pink espresso machine on the counter
+function buildKitchen() {
+  const projects = {};
+  // vertical fluting: a groove every few pixels over dark walnut grain, so the bump map reads as real reeding
+  const fluteTex = canvasTex(256, 512, (g, w, h) => {
+    g.fillStyle = '#4a2b1b'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 120; i++) { const x0 = rand() * w; g.strokeStyle = rand() < 0.6 ? '#2f1a10' : '#6e4329'; g.globalAlpha = 0.06 + rand() * 0.12; g.lineWidth = 0.6 + rand() * 1.8;
+      g.beginPath(); for (let y = 0; y <= h; y += 16) g.lineTo(x0 + Math.sin(y * 0.01 + i) * 3, y); g.stroke(); }
+    g.globalAlpha = 1;
+    for (let x = 0; x < w; x += 16) { const gr = g.createLinearGradient(x, 0, x + 16, 0); gr.addColorStop(0, 'rgba(0,0,0,.45)'); gr.addColorStop(0.18, 'rgba(0,0,0,0)'); gr.addColorStop(0.55, 'rgba(255,220,180,.08)'); gr.addColorStop(1, 'rgba(0,0,0,.2)'); g.fillStyle = gr; g.fillRect(x, 0, 16, h); }
+  });
+  const FLUTE = texMat(fluteTex, 0.5); FLUTE.bumpScale = 1.2;
+  const CARCASS = mat('#3a2216', 0.6);
+  // warm quartzite: cream with soft grey and taupe veining drifting across
+  const quartzTex = canvasTex(512, 512, (g, w, h) => {
+    g.fillStyle = '#ddd2c4'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 2600; i++) { g.fillStyle = rand() < 0.5 ? 'rgba(255,250,242,.25)' : 'rgba(150,135,120,.12)'; g.fillRect(rand() * w, rand() * h, 2 + rand() * 6, 1 + rand() * 3); }
+    for (let i = 0; i < 10; i++) { g.strokeStyle = i % 3 ? 'rgba(140,125,110,.18)' : 'rgba(250,246,240,.45)'; g.lineWidth = 0.6 + rand() * 2.4; g.beginPath();
+      let x = rand() * w, y = -10; g.moveTo(x, y); while (y < h + 10) { const nx = x + (rand() - 0.4) * 30, ny = y + 30 + rand() * 30; g.quadraticCurveTo(x + (rand() - 0.5) * 20, (y + ny) / 2, nx, ny); x = nx; y = ny; } g.stroke(); }
+  });
+  const QUARTZ = new THREE.MeshStandardMaterial({ map: quartzTex, roughness: 0.22, metalness: 0, envMapIntensity: 0.6, bumpMap: quartzTex, bumpScale: 0.15 });
+  const PLASTER = texMat(speckleTex('#efe6da', 'rgba(255,255,255,.18)', 'rgba(180,160,140,.07)', 5000, [3, 2]), 0.95); PLASTER.bumpScale = 0.2;
+  const BRASS = mat('#c99b55', 0.25, 0.9), BLACK = mat('#1b1a1a', 0.45, 0.3), STEEL = mat('#c9ccd0', 0.22, 0.95);
+
+  // walls: back and side, plain plaster with a slim walnut baseboard
+  box(11.0, 7.0, 0.3, PLASTER, 0, 3.5, -4.7, ROOT, 0.03);
+  box(0.3, 7.0, 8.4, PLASTER, -5.5, 3.5, -0.65, ROOT, 0.03);
+  box(11.0, 0.22, 0.04, CARCASS, 0, 0.11, -4.53, ROOT, 0.01);
+  [[-4.85, -1.95], [0.45, 3.55]].forEach(([a, b]) => box(0.04, 0.22, b - a, CARCASS, -5.33, 0.11, (a + b) / 2, ROOT, 0.01));
+  building = 'kitchen'; doorway(-5.5, -0.75, 'office', '#4a2c1c', '#3a2416');
+
+  // cabinet run along the back wall
+  const fronts = (x0, x1, y0, y1, z, n) => { const w = (x1 - x0) / n; for (let i = 0; i < n; i++) box(w - 0.025, y1 - y0, 0.05, FLUTE, x0 + w * (i + 0.5), (y0 + y1) / 2, z, ROOT, 0.012); };
+  [[-4.6, -2.4], [2.4, 4.6]].forEach(([a, b]) => {
+    box(b - a, 6.2, 1.05, CARCASS, (a + b) / 2, 3.1, -4.02, ROOT, 0.02);
+    fronts(a, b, 0.18, 6.15, -3.47, 2);
+  });
+  // tall right block is the fridge: two slim black pulls running down the doors
+  [3.42, 3.58].forEach(x => box(0.025, 1.6, 0.04, BLACK, x, 3.5, -3.4, ROOT, 0.01));
+  box(4.8, 1.85, 1.05, CARCASS, 0, 1.0, -4.02, ROOT, 0.02);
+  box(4.8, 0.16, 0.95, mat('#1e1410', 0.8), 0, 0.08, -4.08, ROOT, 0);
+  fronts(-2.4, -0.62, 0.2, 1.84, -3.47, 2); fronts(0.62, 2.4, 0.2, 1.84, -3.47, 2);
+  box(4.8, 0.1, 1.12, QUARTZ, 0, 1.9, -4.0, ROOT, 0.012);
+  box(4.8, 1.98, 0.04, QUARTZ, 0, 2.94, -4.52, ROOT, 0.005);
+  box(4.8, 2.25, 0.72, CARCASS, 0, 5.08, -4.18, ROOT, 0.02);
+  fronts(-2.4, 2.4, 3.97, 6.18, -3.8, 6);
+  // warm LED strip tucked under the uppers, washing down the stone
+  box(4.6, 0.015, 0.03, LED, 0, 3.94, -3.88, ROOT, 0);
+  [-1.4, 1.4].forEach(x => { const l = new THREE.PointLight('#ffcf95', 3.2, 3.6, 1.6); l.position.set(x, 3.75, -4.15); ROOT.add(l); });
+
+  // range in the middle: stainless front, dark oven glass, black glass hob with cast-iron grates, brass pot filler
+  box(1.22, 1.62, 0.06, STEEL, 0, 1.0, -3.46, ROOT, 0.02);
+  box(1.0, 0.8, 0.02, mat('#141516', 0.08, 0.3), 0, 0.85, -3.42, ROOT, 0.02);
+  const ovenBar = cyl(0.018, 0.018, 0.9, STEEL, 0, 1.38, -3.36, ROOT, 12); ovenBar.rotation.z = Math.PI / 2;
+  [-0.4, -0.2, 0, 0.2, 0.4].forEach(x => { const k = cyl(0.04, 0.045, 0.05, STEEL, x, 1.67, -3.4, ROOT, 18); k.rotation.x = Math.PI / 2; });
+  box(1.15, 0.02, 0.85, mat('#0e0e10', 0.06, 0.4), 0, 1.965, -3.98, ROOT, 0.01);
+  [[-0.3, -4.2], [0.3, -4.2], [-0.3, -3.75], [0.3, -3.75]].forEach(([x, z]) => {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.012, 6, 28), mat('#2a2826', 0.6, 0.4)); ring.rotation.x = Math.PI / 2; ring.position.set(x, 1.99, z); ROOT.add(ring);
+    [0, 1, 2, 3].forEach(k => { const bar = box(0.3, 0.015, 0.015, mat('#2a2826', 0.6, 0.4), x, 1.99, z, ROOT, 0); bar.rotation.y = k * Math.PI / 4; });
+  });
+  tube(new THREE.CatmullRomCurve3([v(0, 3.3, -4.5), v(0, 3.3, -4.38), v(0.02, 3.3, -4.2), v(0.35, 3.3, -4.15)]), 0.02, BRASS, ROOT);
+  // a wooden board leaning on the backsplash and one stone jar, nothing more
+  const board = new THREE.Group(); board.position.set(-1.75, 1.95, -4.42); board.rotation.x = -0.12; ROOT.add(board);
+  lathe([[0, 0], [0.28, 0], [0.29, 0.02], [0, 0.02]], OAK, board).rotation.x = Math.PI / 2;
+  board.children[0].position.y = 0.32; box(0.07, 0.22, 0.02, OAK, 0, 0.7, 0.01, board, 0.01);
+  lathe([[0, 0], [0.11, 0], [0.14, 0.12], [0.13, 0.3], [0.09, 0.36], [0.08, 0.4], [0, 0.4]], texMat(speckleTex('#8d8478', 'rgba(60,55,50,.35)', 'rgba(220,210,195,.3)', 3000), 0.8), ROOT).position.set(-1.15, 1.95, -4.2);
+
+  // the pink espresso machine: rounded pink body, steel tray and group head, wood portafilter handle, paddle and knobs
+  const em = new THREE.Group(); em.position.set(1.55, 1.95, -4.02); ROOT.add(em);
+  const PINK = new THREE.MeshStandardMaterial({ color: '#f3a9bd', roughness: 0.28, metalness: 0.15, envMapIntensity: 0.9 });
+  const WOOD = texMat(woodTex('#b07a4a', '#7a4a28', '#d39e6b', [1, 1]), 0.45);
+  [-0.24, 0.24].forEach(x => [-0.22, 0.2].forEach(z => cyl(0.025, 0.03, 0.04, BLACK, x, 0.02, z, em, 12)));
+  const body = new THREE.Mesh(new RoundedBoxGeometry(0.62, 0.52, 0.56, 4, 0.06), PINK); body.position.y = 0.3; body.castShadow = true; em.add(body);
+  box(0.6, 0.02, 0.5, STEEL, 0, 0.57, -0.01, em, 0.008);
+  [-0.29, 0.29].forEach(x => box(0.015, 0.05, 0.48, STEEL, x, 0.6, -0.01, em, 0.004));
+  box(0.4, 0.04, 0.18, STEEL, 0, 0.05, 0.33, em, 0.01);
+  for (let i = 0; i < 7; i++) box(0.36, 0.006, 0.008, mat('#8d9094', 0.3, 0.9), 0, 0.072, 0.26 + i * 0.022, em, 0);
+  const gh = cyl(0.075, 0.08, 0.08, STEEL, 0, 0.36, 0.3, em, 28);
+  cyl(0.065, 0.06, 0.05, STEEL, 0, 0.3, 0.32, em, 28);
+  const handle = cyl(0.022, 0.028, 0.24, WOOD, 0, 0.3, 0.5, em, 16); handle.rotation.x = Math.PI / 2;
+  [[-0.24, 1], [0.24, -1]].forEach(([x, s]) => {
+    const knob = cyl(0.035, 0.038, 0.05, WOOD, x, 0.47, 0.29, em, 18); knob.rotation.x = Math.PI / 2;
+    tube(new THREE.CatmullRomCurve3([v(x, 0.42, 0.3), v(x + s * 0.03, 0.33, 0.34), v(x + s * 0.04, 0.16, 0.37)]), 0.008, STEEL, em);
+  });
+  const paddle = box(0.05, 0.03, 0.14, WOOD, -0.16, 0.6, 0.12, em, 0.012); paddle.rotation.y = 0.5;
+  [-0.08, 0.08].forEach(x => lathe([[0, 0], [0.03, 0], [0.04, 0.06], [0.037, 0.06], [0, 0.008]], mat('#fbf7f1', 0.25), em, THREE.DoubleSide).position.set(x, 0.07, 0.33));
+
+  // waterfall island: quartzite top and two end slabs, walnut body set back so stools tuck under the overhang
+  box(4.6, 0.12, 1.7, QUARTZ, 0, 1.89, 0.6, ROOT, 0.012);
+  [-2.24, 2.24].forEach(x => box(0.12, 1.83, 1.7, QUARTZ, x, 0.915, 0.6, ROOT, 0.012));
+  box(4.36, 1.72, 1.15, CARCASS, 0, 0.98, 0.32, ROOT, 0.02);
+  fronts(-2.18, 2.18, 0.2, 1.8, -0.27, 4);
+  box(4.36, 0.16, 1.05, mat('#1e1410', 0.8), 0, 0.08, 0.36, ROOT, 0);
+  // undermount sink and a brass gooseneck faucet on the cooking side
+  box(0.9, 0.012, 0.5, mat('#1a1a1b', 0.3, 0.4), -1.0, 1.952, 0.28, ROOT, 0.01);
+  const fau = new THREE.Group(); fau.position.set(-1.0, 1.95, 0.0); ROOT.add(fau);
+  cyl(0.035, 0.04, 0.08, BRASS, 0, 0.04, 0, fau, 18);
+  tube(new THREE.CatmullRomCurve3([v(0, 0.06, 0), v(0, 0.55, 0), v(0, 0.75, 0.12), v(0, 0.62, 0.3), v(0, 0.48, 0.32)]), 0.017, BRASS, fau);
+  const lever = cyl(0.012, 0.012, 0.14, BRASS, 0.07, 0.2, 0, fau, 10); lever.rotation.z = -1.0;
+  // four upholstered counter stools with dark wood legs
+  const SEAT = texMat(speckleTex('#77716b', 'rgba(255,255,255,.12)', 'rgba(30,25,20,.2)', 6000, [2, 2]), 0.95);
+  [-1.6, -0.55, 0.55, 1.6].forEach(x => {
+    const st = new THREE.Group(); st.position.set(x, 0, 1.85); ROOT.add(st);
+    [[-0.2, -0.2], [0.2, -0.2], [-0.2, 0.2], [0.2, 0.2]].forEach(([lx, lz]) => { const leg = cyl(0.022, 0.028, 1.32, mat('#3b2418', 0.5), lx * 1.1, 0.66, lz * 1.1, st, 10); leg.rotation.set(lz * 0.12, 0, -lx * 0.12); });
+    [[0, -0.22], [0, 0.22]].forEach(([, lz]) => box(0.46, 0.025, 0.025, mat('#3b2418', 0.5), 0, 0.5, lz, st, 0.008));
+    box(0.52, 0.1, 0.5, SEAT, 0, 1.36, 0, st, 0.05);
+    const back = box(0.5, 0.42, 0.07, SEAT, 0, 1.66, 0.24, st, 0.035); back.rotation.x = 0.16;
+  });
+  // three glass bell pendants on brass rods, each with a warm filament bulb
+  [-1.45, 0, 1.45].forEach(x => {
+    const pd = new THREE.Group(); pd.position.set(x, 4.55, 0.6); ROOT.add(pd);
+    cyl(0.012, 0.012, 3.2, BRASS, 0, 2.0, 0, pd, 8);
+    lathe([[0, 0.38], [0.06, 0.38], [0.08, 0.3], [0.05, 0.24], [0, 0.24]], BRASS, pd);
+    lathe([[0.05, 0.26], [0.16, 0.22], [0.28, 0.08], [0.33, -0.08], [0.34, -0.12]], new THREE.MeshStandardMaterial({ color: '#f4efe6', transparent: true, opacity: 0.22, roughness: 0.04, metalness: 0.1, side: THREE.DoubleSide, depthWrite: false }), pd);
+    ball(0.055, new THREE.MeshBasicMaterial({ color: '#ffcf8a', toneMapped: false }), 0, 0.08, 0, pd, 1, 1.3, 1);
+    const l = new THREE.PointLight('#ffb867', 4, 7, 1.5); l.position.y = 0.0; pd.add(l);
+    halo('#ffb867', 0.9, 0, 0.08, 0, pd, 0.35);
+  });
+  oliveTree(4.5, 1.6, 0.85);
+
+  // the cooking app lives on a tablet propped up on the island
+  const tab = new THREE.Group(); tab.position.set(1.25, 1.95, 0.75); tab.rotation.y = -0.25; ROOT.add(tab);
+  box(0.36, 0.03, 0.2, OAK, 0, 0.015, 0, tab, 0.01);
+  const tb = new THREE.Group(); tb.position.set(0, 0.2, -0.02); tb.rotation.x = -0.35; tab.add(tb);
+  box(0.62, 0.44, 0.025, mat('#2a2a2c', 0.4, 0.3), 0, 0, 0, tb, 0.03);
+  const appTex = canvasTex(560, 400, (g, w, h) => {
+    g.fillStyle = '#fbf6ee'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#3a2a22'; g.font = `700 26px ${FONT}`; g.fillText('今晚 Tonight', 24, 44);
+    g.fillStyle = '#9a7b62'; g.font = `500 15px ${FONT}`; g.fillText('3 道菜 · 3 dishes · 4 人份 serves 4', 24, 68);
+    [['红烧排骨', 'Braised ribs', '#c8553d'], ['番茄炒蛋', 'Tomato & egg', '#e39a3b'], ['蒜蓉青菜', 'Garlic greens', '#6c9a5b']].forEach(([zh, en, c], i) => {
+      const y = 100 + i * 46; g.fillStyle = c; g.beginPath(); g.arc(34, y - 6, 7, 0, 7); g.fill();
+      g.fillStyle = '#3a2a22'; g.font = `600 18px ${FONT}`; g.fillText(zh, 52, y); g.fillStyle = '#8a7666'; g.font = `500 15px ${FONT}`; g.fillText(en, 140, y);
+      g.fillStyle = c; g.globalAlpha = 0.85; const x0 = 300 + [0, 120, 150][i], len = [210, 70, 60][i]; g.fillRect(x0, y - 14, len, 14); g.globalAlpha = 1;
+    });
+    g.strokeStyle = '#e4d8c9'; g.beginPath(); g.moveTo(24, 252); g.lineTo(w - 24, 252); g.stroke();
+    g.fillStyle = '#3a2a22'; g.font = `600 16px ${FONT}`; g.fillText('先做 Start first', 24, 282);
+    g.fillStyle = '#6a5848'; g.font = `500 15px ${FONT}`;
+    g.fillText('0:00  焯水排骨 · Blanch the ribs, then braise 40 min', 24, 308);
+    g.fillText('0:05  一起切 · Prep together: 1 whole head of garlic (蒜 1 头)', 24, 332);
+    g.fillText('0:35  番茄炒蛋 → 蒜蓉青菜 · stir-fries last, served hot', 24, 356);
+  });
+  screen(0.58, 0.4, appTex, 0, 0, 0.014, 0, tb);
+  projects['cooking-app'] = { group: tab, object: 'Recipe tablet', focus: [1.25, 2.15, 0.75], view: [0.08, 0.3, 1.05], normal: [0, 0, 1] };
+  return projects;
+}
+
 const ROOMS = {
   office: { name: 'Office', build: buildOffice, center: v(-0.3, 2.6, -0.3), radius: 19, light: { sun: 0.22, hemi: 0.07, env: 0.42, sunColor: '#ffb070', exposure: 0.95, bg: ['#fbf8f2', '#efe8dc', '#d8cdbc'], shadow: '#6b5a45' } },
   closet: { name: 'Closet', build: buildCloset, center: v(-0.2, 2.6, -0.5), radius: 17 },
   lab: { name: 'Control Room', build: buildLab, center: v(0.0, 3.2, -0.6), radius: 21, light: { sun: 0.65, hemi: 0.15, exposure: 0.88, bg: ['#fafafa', '#e6e6e9', '#c5c5cb'], shadow: '#2e2e36' } },
+  kitchen: { name: 'Kitchen', build: buildKitchen, center: v(0, 2.8, -0.8), radius: 19, light: { sun: 0.3, hemi: 0.09, env: 0.55, sunColor: '#ffbf80', exposure: 0.95, bg: ['#f8f3ec', '#e9dfd2', '#cdbfac'], shadow: '#5a4a3a' } },
   workshop: { name: 'Workshop', build: buildWorkshop, center: v(0.0, 2.8, -0.3), radius: 19, light: { sun: 0.7, hemi: 0.2, exposure: 0.9, bg: ['#fdfbf8', '#ece7e0', '#cdc5bb'], shadow: '#4a3a30' } },
 };
 
@@ -1256,6 +1404,13 @@ function buildOffice() {
   // side wall with the door, hub, corkboard and a bookcase that is secretly a door
   paneledWall(-4.4, -0.25, 10.3, 6.6, { 1: [[1.64, 3.86], [-5.3, -2.5]], [-1]: [[1.64, 3.86]] });
   building = 'office'; doorway(-4.4, 2.75, 'closet');
+  // back wall behind the desk, with the door through to the kitchen; built turned so the wall helpers work along it
+  {
+    const prev = ROOT, back = new THREE.Group(); back.position.set(0.8, 0, -5.6); back.rotation.y = -Math.PI / 2; ROOT.add(back); ROOT = back;
+    paneledWall(0, 0, 10.8, 6.6, { 1: [[-1.91, 0.31]], [-1]: [[-1.91, 0.31]] });
+    doorway(0, -0.8, 'kitchen');
+    ROOT = prev;
+  }
 
   // walnut executive desk in the middle of the room: two pedestals with drawers facing the chair
   box(4.8, 0.14, 2.3, WALNUT, 0, 2.46, 0, desk, 0.04);
@@ -2510,7 +2665,7 @@ ROOT = scene;
 let room = 'office';
 ROOMS.office.group.visible = true;
 applyLight();
-const NAMES = { 'home-hub': 'Home Hub', 'rank-everything': 'Rank Everything', 'pingu': 'Pingu', 'outfit-app': 'Outfit App', school: 'School', work: 'Work', 'rc-car': 'RC Car', testbench: 'Seatback Testbench', computer: 'Computer', records: 'Records' };
+const NAMES = { 'home-hub': 'Home Hub', 'rank-everything': 'Rank Everything', 'pingu': 'Pingu', 'outfit-app': 'Outfit App', 'cooking-app': 'Cooking App', school: 'School', work: 'Work', 'rc-car': 'RC Car', testbench: 'Seatback Testbench', computer: 'Computer', records: 'Records' };
 
 // picking: projects and doors in the room that's showing
 Object.entries(PROJECTS).forEach(([id, p]) => { p.group.userData.pid = id; p.scale = 1; p.baseScale = p.group.scale.x; });
