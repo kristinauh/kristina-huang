@@ -2596,15 +2596,17 @@ function buildLab() {
   // eye-level row: school and work in the middle of the back section, equipment everywhere else
   banks.forEach((u, i) => {
     const slots = sections[i][0] / 2.1;
-    for (let k = 0; k < slots; k++) if (i !== 2) fillSlot(u, -sections[i][0] / 2 + 1.05 + k * 2.1, 3.43, 1.0);
+    for (let k = 0; k < slots; k++) if (i !== 2 && i !== 1) fillSlot(u, -sections[i][0] / 2 + 1.05 + k * 2.1, 3.43, 1.0);
   });
   const back = banks[2];
   const school = crt(back, -1.05, 3.43, 0.07, 1.92, 1.0, liveScreen('title', PHOSPHOR[0], 'SCHOOL'), BODIES[0]);
   const work = crt(back, 1.05, 3.43, 0.07, 1.92, 1.0, liveScreen('title', PHOSPHOR[2], 'WORK'), BODIES[0]);
+  // the angled bank next to them holds the tapeout lab
+  const tapeout = crt(banks[1], 0, 3.43, 0.07, 1.92, 1.0, liveScreen('title', PHOSPHOR[3], 'TAPEOUT'), BODIES[0]);
   scene.updateMatrixWorld(true);
-  [['school', school], ['work', work]].forEach(([id, g]) => {
-    const at = g.localToWorld(v(0, 0.5, 0.3)), n = v(0, 0, 1).transformDirection(back.matrixWorld);
-    projects[id] = { group: g, object: 'Monitor in the control room', focus: at.toArray(), view: n.multiplyScalar(3.4).add(v(id === 'school' ? 0.4 : -0.4, 0.3, 0)).toArray(), normal: [0, 0, 1] };
+  [['school', school, back], ['work', work, back], ['tapeout-lab', tapeout, banks[1]]].forEach(([id, g, bank]) => {
+    const at = g.localToWorld(v(0, 0.5, 0.3)), n = v(0, 0, 1).transformDirection(bank.matrixWorld);
+    projects[id] = { group: g, object: 'Monitor in the control room', focus: at.toArray(), view: n.multiplyScalar(3.4).add(v(id === 'school' ? 0.4 : id === 'work' ? -0.4 : 0, 0.3, 0)).toArray(), normal: [0, 0, 1] };
   });
 
   // brown leather office chair, and a computer tower under the back desk
@@ -2672,7 +2674,7 @@ ROOT = scene;
 let room = 'office';
 ROOMS.office.group.visible = true;
 applyLight();
-const NAMES = { 'home-hub': 'Home Hub', 'rank-everything': 'Rank Everything', 'pingu': 'Pingu', 'outfit-app': 'Outfit App', 'cooking-app': 'Cooking App', school: 'School', work: 'Work', 'rc-car': 'RC Car', testbench: 'Seatback Testbench', computer: 'Computer', records: 'Records' };
+const NAMES = { 'home-hub': 'Home Hub', 'rank-everything': 'Rank Everything', 'pingu': 'Pingu', 'outfit-app': 'Outfit App', 'cooking-app': 'Cooking App', 'tapeout-lab': 'Tapeout Lab', school: 'School', work: 'Work', 'rc-car': 'RC Car', testbench: 'Seatback Testbench', computer: 'Computer', records: 'Records' };
 
 // picking: projects and doors in the room that's showing
 Object.entries(PROJECTS).forEach(([id, p]) => { p.group.userData.pid = id; p.scale = 1; p.baseScale = p.group.scale.x; });
