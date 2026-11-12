@@ -350,6 +350,17 @@ body.public #note, #panel .row, #panel .tabs, #stepForm, #linkForm,
 #pMeta .st { display: inline-block; padding: 4px 8px; border-radius: 99px; background: rgba(255,156,192,.18); color: #ffb3cf; margin-right: 8px; }
 #pNow { margin: 0; line-height: 1.5; }
 /* the office computer: an orange crt terminal you type into, or a clean portfolio website */
+#crtUI { width: 640px; height: 400px; box-sizing: border-box; padding: 26px 30px; overflow: auto; overscroll-behavior: contain; pointer-events: auto; position: relative;
+  font: 19px/1.45 ui-monospace, Menlo, monospace; background: var(--bg); color: var(--fg); text-shadow: 0 0 6px var(--fg); border-radius: 10px; }
+#crtUI::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: 10px;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.45)); }
+#crtUI h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: .04em; }
+#crtUI h2 { font-size: 14px; margin: 18px 0 6px; letter-spacing: .14em; opacity: .7; font-weight: 600; }
+#crtUI p, #crtUI ul { margin: 0; } #crtUI ul { padding: 0; list-style: none; }
+#crtUI li { padding: 2px 0; } #crtUI .dim { opacity: .6; }
+#crtUI a, #crtUI button { color: inherit; font: inherit; text-shadow: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+#crtUI .row { display: flex; gap: 14px; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed color-mix(in srgb, var(--fg) 30%, transparent); }
+#crtUI .row button { text-decoration: none; } #crtUI .row button:hover { text-decoration: underline; }
 #computer {
   width: 800px; height: 576px; display: flex; flex-direction: column; overflow: hidden; border-radius: 6px;
   opacity: 0; transition: opacity .4s .45s; backface-visibility: hidden;
@@ -512,6 +523,7 @@ body.public #note, #panel .row, #panel .tabs, #stepForm, #linkForm,
 
 <div id="labels"></div>
 
+<div id="crtUI" hidden></div>
 <div id="computer" hidden>
   <div class="pc-bar" id="pcBar">
     <span id="pcTitle">kh@workbench: ~</span>
@@ -2293,7 +2305,9 @@ function buildWorkshop() {
     g.fillStyle = '#c8455a'; g.beginPath(); g.arc(w / 2, h / 2, 5, 0, 7); g.fill();
   });
   // same 5:3 shape as the original screen, just bigger
-  plane(1.68, 1.01, new THREE.MeshBasicMaterial({ map: blue, toneMapped: false }), 0, 1.25, -0.055, 0, cc);
+  const ccScreen = plane(1.68, 1.01, new THREE.MeshBasicMaterial({ map: blue, toneMapped: false }), 0, 1.25, -0.055, 0, cc);
+  // the console browses every project in the workshop
+  projects['workshop-pc'] = { group: cc, object: 'Workshop console', focus: [0, 0, 0], view: [0, 0, 1], normal: [0, 0, 1], crt: { mesh: ccScreen, pal: ['#0b2433', '#9fe3ff'], list: true } };
   box(1.5, 0.06, 0.02, DARK, 0, 0.65, -0.075, cc, 0.01);
   // seatback monitor testbench from the summer internship: two pink rounded-triangle end handles with a divider,
   // din rails running into them across the sloped front and the back, the relays, plc and interface pcb on the
@@ -2445,7 +2459,7 @@ function buildLab() {
     // slightly bulging tube glass
     const geo = new THREE.PlaneGeometry(sw, h * 0.78, 12, 12), pp = geo.attributes.position;
     for (let i = 0; i < pp.count; i++) { const u = pp.getX(i) / (sw / 2), vv = pp.getY(i) / (h * 0.39); pp.setZ(i, 0.03 * (1 - u * u) * (1 - vv * vv)); }
-    const scr = new THREE.Mesh(geo, smat); scr.position.set(sx, h / 2, 0.255); g.add(scr);
+    const scr = new THREE.Mesh(geo, smat); scr.position.set(sx, h / 2, 0.255); g.add(scr); g.userData.screen = scr;
     if (knobs) [0.62, 0.42, 0.22].forEach(dy => { const k = cyl(0.04, 0.04, 0.03, KNOB, w * 0.38, dy * h, 0.24, g, 12); k.rotation.x = Math.PI / 2; });
     return g;
   }
@@ -2604,9 +2618,9 @@ function buildLab() {
   // the angled bank next to them holds the tapeout lab
   const tapeout = crt(banks[1], 0, 3.43, 0.07, 1.92, 1.0, liveScreen('title', PHOSPHOR[3], 'TAPEOUT'), BODIES[0]);
   scene.updateMatrixWorld(true);
-  [['school', school, back], ['work', work, back], ['tapeout-lab', tapeout, banks[1]]].forEach(([id, g, bank]) => {
-    const at = g.localToWorld(v(0, 0.5, 0.3)), n = v(0, 0, 1).transformDirection(bank.matrixWorld);
-    projects[id] = { group: g, object: 'Monitor in the control room', focus: at.toArray(), view: n.multiplyScalar(3.4).add(v(id === 'school' ? 0.4 : id === 'work' ? -0.4 : 0, 0.3, 0)).toArray(), normal: [0, 0, 1] };
+  // clicking one of these shows its project right on the tube, in that tube's phosphor colours
+  [['school', school, PHOSPHOR[0]], ['work', work, PHOSPHOR[2]], ['tapeout-lab', tapeout, PHOSPHOR[3]]].forEach(([id, g, pal]) => {
+    projects[id] = { group: g, object: 'Monitor in the control room', focus: [0, 0, 0], view: [0, 0, 1], normal: [0, 0, 1], crt: { mesh: g.userData.screen, pal } };
   });
 
   // brown leather office chair, and a computer tower under the back desk
@@ -2674,7 +2688,7 @@ ROOT = scene;
 let room = 'office';
 ROOMS.office.group.visible = true;
 applyLight();
-const NAMES = { 'home-hub': 'Home Hub', 'rank-everything': 'Rank Everything', 'pingu': 'Pingu', 'outfit-app': 'Outfit App', 'cooking-app': 'Cooking App', 'tapeout-lab': 'Tapeout Lab', school: 'School', work: 'Work', 'rc-car': 'RC Car', testbench: 'Seatback Testbench', computer: 'Computer', records: 'Records' };
+const NAMES = { 'home-hub': 'Home Hub', 'rank-everything': 'Rank Everything', 'pingu': 'Pingu', 'outfit-app': 'Outfit App', 'cooking-app': 'Cooking App', 'tapeout-lab': 'Tapeout Lab', 'workshop-pc': 'Projects', school: 'School', work: 'Work', 'rc-car': 'RC Car', testbench: 'Seatback Testbench', computer: 'Computer', records: 'Records' };
 
 // picking: projects and doors in the room that's showing
 Object.entries(PROJECTS).forEach(([id, p]) => { p.group.userData.pid = id; p.scale = 1; p.baseScale = p.group.scale.x; });
@@ -2941,6 +2955,56 @@ const css3d = new CSS3DRenderer();
 Object.assign(css3d.domElement.style, { position: 'fixed', inset: '0', pointerEvents: 'none' });
 document.body.insertBefore(css3d.domElement, canvas);
 const pcObj = new CSS3DObject($('#computer')); pcObj.visible = false; scene.add(pcObj);
+const crtObj = new CSS3DObject($('#crtUI')); crtObj.visible = false; scene.add(crtObj);
+// see-through material: lets the html dashboard behind the canvas show through the tube while staying occluded properly
+const CRT_HOLE = new THREE.MeshBasicMaterial({ color: 0x000000, opacity: 0, blending: THREE.NoBlending });
+let crtOn = null, crtView = null;
+function crtRender() {
+  const ui = $('#crtUI'), p = PROJECTS[crtOn]; ui.replaceChildren();
+  const add = (tag, text, cls) => { const n = el(tag, cls || '', text); ui.append(n); return n; };
+  const detail = (pid, back) => {
+    const d = data[pid] || {};
+    if (back) { const b = el('button', '', '< all projects'); b.onclick = () => { crtView = null; crtRender(); }; ui.append(b); }
+    add('h1', '> ' + (d.name || NAMES[pid] || pid).toUpperCase());
+    add('p', [d.status, d.updated && 'updated ' + fmtDate(d.updated)].filter(Boolean).join(' · ') || 'no status yet', 'dim');
+    if (d.tagline) add('p', d.tagline);
+    if (d.now) { add('h2', 'WHERE IT’S AT'); add('p', d.now); }
+    add('h2', 'NEXT STEPS'); const ul = add('ul');
+    (d.steps || []).forEach(s => ul.append(el('li', s.done ? 'dim' : '', (s.done ? '[x] ' : '[ ] ') + s.text)));
+    if (!(d.steps || []).length) ul.append(el('li', 'dim', 'nothing planned yet'));
+    if ((d.links || []).length) { add('h2', 'LINKS'); const ll = add('ul'); d.links.forEach(l => { const a = el('a', '', l.title); a.href = l.url; a.target = '_blank'; a.rel = 'noopener'; const li = el('li'); li.append('→ ', a); ll.append(li); }); }
+  };
+  if (p.crt.list && crtView) return detail(crtView, true);
+  if (p.crt.list) {
+    add('h1', '> WORKSHOP PROJECTS'); add('p', 'select a project', 'dim'); add('h2', 'INDEX');
+    Object.keys(PROJECTS).filter(k => PROJECTS[k].room === p.room && !PROJECTS[k].crt).forEach(k => {
+      const d = data[k] || {}, r = el('div', 'row'), b = el('button', '', d.name || NAMES[k] || k);
+      b.onclick = () => { crtView = k; crtRender(); }; r.append(b, el('span', 'dim', d.status || '')); ui.append(r);
+    });
+    return;
+  }
+  detail(crtOn);
+}
+function crtOpen(pid) {
+  const c = PROJECTS[pid].crt, ui = $('#crtUI');
+  crtOn = pid; crtView = null; c.saved = c.mesh.material; c.mesh.material = CRT_HOLE;
+  const g = c.mesh.geometry.parameters;
+  ui.style.height = Math.round(640 * g.height / g.width) + 'px';
+  ui.style.setProperty('--bg', c.pal[0]); ui.style.setProperty('--fg', c.pal[1]);
+  ui.hidden = false; crtRender(); placeCrt();
+}
+function crtClose() {
+  if (!crtOn) return; const c = PROJECTS[crtOn].crt;
+  c.mesh.material = c.saved; crtOn = null; $('#crtUI').hidden = true; crtObj.visible = false;
+}
+function placeCrt() {
+  const p = PROJECTS[crtOn], s = p.crt.mesh;
+  s.updateWorldMatrix(true, false); s.matrixWorld.decompose(_sp, _sq, _ss);
+  const worldW = s.geometry.parameters.width * _ss.x;
+  crtObj.position.copy(_sp).add(new THREE.Vector3(0, 0, 0.015).applyQuaternion(_sq));
+  crtObj.quaternion.copy(_sq); crtObj.scale.setScalar(worldW / 640);
+  p.focus = _sp.toArray(); p.view = new THREE.Vector3(0, 0, worldW * 1.6).applyQuaternion(_sq).toArray();
+}
 const _sp = new THREE.Vector3(), _sq = new THREE.Quaternion(), _ss = new THREE.Vector3();
 function placeScreen() {
   const s = pcMode === 'retro' ? PC.retroScreen : PC.modernScreen, wPx = pcMode === 'retro' ? 800 : 960;
@@ -2971,8 +3035,8 @@ function setGoal(pid) {
   // pull back a little on phones, but not so far the camera ends up behind the desk
   const portrait = camera.aspect < 1 ? Math.min(1.25, Math.max(1, 0.7 / camera.aspect)) : 1;
   goal.base.set(...p.view).multiplyScalar(portrait).add(goal.target);
-  goal.offX = isSheet() || p.computer || p.noPanel ? 0 : Math.min(228, ($('#panel').offsetWidth || 400) / 2 + 8);
-  goal.offY = isSheet() && !p.computer && !p.noPanel ? H * 0.32 : 0;
+  goal.offX = isSheet() || p.computer || p.crt || p.noPanel ? 0 : Math.min(228, ($('#panel').offsetWidth || 400) / 2 + 8);
+  goal.offY = isSheet() && !p.computer && !p.crt && !p.noPanel ? H * 0.32 : 0;
 }
 const right = new THREE.Vector3(), up = new THREE.Vector3(), fwd = new THREE.Vector3();
 function overviewPos(out) {
@@ -3117,7 +3181,7 @@ function frame() {
   if (Math.abs(cam.offX) + Math.abs(cam.offY) > 0.5) camera.setViewOffset(W, H, cam.offX, cam.offY, W, H);
   else camera.clearViewOffset();
   for (const [id, p] of Object.entries(PROJECTS)) {
-    const target = hovered === id && current !== id && !p.computer && !p.noPanel ? 1.04 : 1;
+    const target = hovered === id && current !== id && !p.computer && !p.crt && !p.noPanel ? 1.04 : 1;
     p.scale += (target - p.scale) * (reduced ? 1 : 1 - Math.exp(-dt * 12));
     p.group.scale.setScalar(p.scale * p.baseScale);
   }
@@ -3141,6 +3205,7 @@ function frame() {
   if (PC) PC.retroScreen.material = idle ? PC.retroScreen.userData.idle : PC.retroScreen.userData.hole;
   pcObj.visible = room === 'office' && !!PC && PC.retro.parent.parent.visible && !idle;
   if (pcObj.visible) placeScreen();
+  crtObj.visible = !!crtOn && PROJECTS[crtOn].room === room; if (crtObj.visible) placeCrt();
   css3d.render(scene, camera);
   requestAnimationFrame(frame);
 }
@@ -3187,6 +3252,7 @@ async function getClaude() {
     s.docs.forEach(d => { if (d.exists) data[d.id] = d.data(); });
     renderLabels();
     if (current) renderPanel();
+    if (crtOn) crtRender();
   }, () => { clearTimeout(timer); $('#note').textContent = '· couldn’t load your projects'; });
   if (current) subChat(current);
 })();
@@ -3220,6 +3286,7 @@ const panel = $('#panel');
 const setHidden = (pid, hidden) => (PROJECTS[pid]?.hide || []).forEach(o => { o.visible = !hidden; });
 function open(pid) {
   if (PROJECTS[pid].noPanel) { if (current && current !== pid) close(); setHidden(pid, true); current = pid; hovered = null; $('#labels').classList.add('hide'); setGoal(pid); if (!VINYL.open) sfx('cabinet'); VINYL.open = true; return; }
+  if (PROJECTS[pid].crt) { if (current && current !== pid) close(); current = pid; hovered = null; $('#labels').classList.add('hide'); canvas.style.pointerEvents = 'none'; crtOpen(pid); setGoal(pid); return; }
   if (PROJECTS[pid].computer) { if (current && current !== pid) close(); current = pid; hovered = null; $('#labels').classList.add('hide'); canvas.style.pointerEvents = 'none'; showComputer(pcMode); return; }
   if (current) setHidden(current, false);
   setHidden(pid, true);
@@ -3231,6 +3298,7 @@ function open(pid) {
 function close() {
   if (current === 'records') { sfx('cabinet'); VINYL.open = false; VINYL.records.forEach(r => r.userData.hover = false); }
   if (current === 'computer') { canvas.style.pointerEvents = ''; $('#termKey').blur(); }
+  if (current && PROJECTS[current].crt) { canvas.style.pointerEvents = ''; crtClose(); }
   if (current) setHidden(current, false);
   current = null;
   panel.classList.remove('open'); panel.inert = true;
@@ -3325,7 +3393,7 @@ const CMDS = {
   startx: () => { tPrint('starting graphical session…', 'dim'); setTimeout(() => showComputer('modern'), 400); },
   open: a => {
     const id = (a[0] || '').replace(/\.md$/, ''), p = PROJECTS[id];
-    if (!p || p.computer || p.noPanel) return tPrint(`open: ${a[0] || ''}: no such project. try ls projects`);
+    if (!p || p.computer || p.crt || p.noPanel) return tPrint(`open: ${a[0] || ''}: no such project. try ls projects`);
     closeComputer();
     if (p.room === room) open(id); else { goRoom(p.room); setTimeout(() => open(id), 1100); }
   },
@@ -3424,6 +3492,7 @@ function closeComputer() { if (current === 'computer') close(); }
 setTimeout(() => showComputer(pcMode));
 // while you're using the computer the canvas steps aside so the page gets clicks and scrolling; clicking off it leaves
 addEventListener('pointerdown', e => { if (current === 'computer' && !e.target.closest('#computer')) close(); }, true);
+addEventListener('pointerdown', e => { if (crtOn && current === crtOn && !e.target.closest('#crtUI')) close(); }, true);
 $('#pcRetro').addEventListener('click', () => showComputer('retro'));
 $('#pcModern').addEventListener('click', () => showComputer('modern'));
 $('#pcClose').addEventListener('click', closeComputer);
