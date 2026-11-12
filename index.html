@@ -350,10 +350,12 @@ body.public #note, #panel .row, #panel .tabs, #stepForm, #linkForm,
 #pMeta .st { display: inline-block; padding: 4px 8px; border-radius: 99px; background: rgba(255,156,192,.18); color: #ffb3cf; margin-right: 8px; }
 #pNow { margin: 0; line-height: 1.5; }
 /* the office computer: an orange crt terminal you type into, or a clean portfolio website */
-#crtUI { width: 640px; height: 400px; box-sizing: border-box; padding: 26px 30px; overflow: auto; overscroll-behavior: contain; pointer-events: auto; position: relative;
+#crtUI { width: 640px; height: 400px; display: flex; overflow: hidden; pointer-events: auto; position: relative;
   font: 19px/1.45 ui-monospace, Menlo, monospace; background: var(--bg); color: var(--fg); text-shadow: 0 0 6px var(--fg); border-radius: 10px; }
 #crtUI::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: 10px;
   background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.45)); }
+/* scrolling happens on an inner box: browsers won't wheel-scroll the 3d-transformed element itself */
+#crtBody { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box; padding: 26px 30px; }
 #crtUI h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: .04em; }
 #crtUI h2 { font-size: 14px; margin: 18px 0 6px; letter-spacing: .14em; opacity: .7; font-weight: 600; }
 #crtUI p, #crtUI ul { margin: 0; } #crtUI ul { padding: 0; list-style: none; }
@@ -523,7 +525,7 @@ body.public #note, #panel .row, #panel .tabs, #stepForm, #linkForm,
 
 <div id="labels"></div>
 
-<div id="crtUI" hidden></div>
+<div id="crtUI" hidden><div id="crtBody"></div></div>
 <div id="computer" hidden>
   <div class="pc-bar" id="pcBar">
     <span id="pcTitle">kh@workbench: ~</span>
@@ -2210,25 +2212,73 @@ function buildWorkshop() {
     if (sz < 0) { const motor = cyl(0.035, 0.035, 0.14, mat('#8f9196', 0.3, 0.8), -sx * 0.12, 0, 0, w, 14); motor.rotation.z = Math.PI / 2; }
   });
   box(0.1, 0.07, 0.16, mat('#2a2826', 0.5), 0, 0.08, 0.36, car, 0.01);
-  // the controller board sits over the rear half of the upper deck on standoffs: a wide black board with
-  // chamfered corners, a header row along one side, a tall heatsink at the back corner and a blue terminal block
-  // turned round and pushed back so its edge lines up with the back of the chassis
-  const pcbB = new THREE.Group(); pcbB.position.set(0, 0.36, 0.17); pcbB.rotation.y = Math.PI; car.add(pcbB);
-  const bs = new THREE.Shape([[-0.25, -0.26], [0.25, -0.26], [0.27, -0.22], [0.27, 0.12], [0.2, 0.26], [-0.2, 0.26], [-0.27, 0.12], [-0.27, -0.22]].map(([x, z]) => new THREE.Vector2(x, z)));
-  const bg = new THREE.ExtrudeGeometry(bs, { depth: 0.014, bevelEnabled: false }); bg.rotateX(Math.PI / 2); bg.translate(0, 0.014, 0);
-  const board = new THREE.Mesh(bg, mat('#111114', 0.35)); board.castShadow = board.receiveShadow = true; pcbB.add(board);
-  [[-0.22, -0.2], [0.22, -0.2], [-0.22, 0.18], [0.22, 0.18]].forEach(([x, z]) => cyl(0.008, 0.008, 0.05, BRASS, x, -0.025, z, pcbB, 8));
-  box(0.03, 0.03, 0.4, mat('#1e1e22', 0.5), -0.23, 0.03, -0.02, pcbB, 0.004);
-  for (let i = 0; i < 13; i++) box(0.008, 0.03, 0.008, mat('#e3c06a', 0.3, 0.8), -0.23, 0.05, -0.2 + i * 0.03, pcbB, 0);
-  const HS = mat('#16161a', 0.4, 0.4);
-  box(0.12, 0.02, 0.12, HS, 0.15, 0.025, -0.18, pcbB, 0.004);
-  for (let i = 0; i < 5; i++) box(0.012, 0.14, 0.12, HS, 0.1 + i * 0.025, 0.1, -0.18, pcbB, 0.002);
-  box(0.07, 0.012, 0.07, mat('#2a2a2e', 0.5), -0.04, 0.02, -0.02, pcbB, 0.003);
-  box(0.045, 0.01, 0.045, mat('#2a2a2e', 0.5), 0.08, 0.019, 0.06, pcbB, 0.003);
-  [[-0.12, 0.12], [0.0, 0.16], [0.1, -0.06]].forEach(([x, z]) => box(0.03, 0.01, 0.015, mat('#c8455a', 0.5), x, 0.019, z, pcbB, 0.002));
-  box(0.06, 0.045, 0.13, mat('#2d6fd0', 0.45), 0.2, 0.036, 0.06, pcbB, 0.005);
-  box(0.09, 0.03, 0.04, mat('#f2f0ea', 0.5), -0.08, 0.029, 0.22, pcbB, 0.004);
-  ball(0.008, glowM('#7dff9a'), 0.02, 0.022, -0.1, pcbB);
+  // the controller board, matched to K's real "VROOM VROOM GO FAST" board (112 x 178 mm, black, ENIG): the chassis-shaped
+  // outline with its slots, her actual silkscreen and pads as a texture, and the tall parts modelled in place.
+  // board mm -> car units; x is flipped because the board's left is +x when the car is seen from above
+  const BS = 0.5 / 112, bxz = (x, y) => [(42 - x) * BS, (y - 75.85) * BS], BT = 1.6 * BS;
+  const pcbB = new THREE.Group(); pcbB.position.set(0, 0.362, 0); car.add(pcbB);
+  const bs = new THREE.Shape([[-14, 139.48], [-14, 1.39], [-5.39, -12.39], [-3.72, -13.3], [87.72, -13.3], [89.39, -12.39], [98, 1.39], [98, 139.48],
+    [84.57, 163.98], [82.83, 165], [1.17, 165], [-0.57, 163.98]].map(([x, y]) => new THREE.Vector2(42 - x, y - 75.85)));
+  // the long slits down both sides and across the back, same as the chassis
+  [[47.9, 45.85, 5.2, 47], [-47.9, 45.85, 5.2, 47], [-0.2, -83.6, 74, 5.1]].forEach(([x, y, w, h]) => bs.holes.push(rrPath(w, h, 2.5, new THREE.Path(), x, y)));
+  const bg = new THREE.ExtrudeGeometry(bs, { depth: 1.6, bevelEnabled: false, curveSegments: 6 });
+  bg.rotateX(Math.PI / 2); bg.scale(BS, BS, BS); bg.translate(0, BT, 0);
+  const silk = new THREE.TextureLoader().load('/_blob/cf4cdc223c9ea6468b9dc13f1eda2906');
+  silk.colorSpace = THREE.SRGBColorSpace; silk.anisotropy = 8; silk.repeat.set(1 / 112, 1 / 178.3); silk.offset.set(0.5, 0.5);
+  const board = new THREE.Mesh(bg, [new THREE.MeshStandardMaterial({ map: silk, roughness: 0.42, metalness: 0.05, envMapIntensity: 0.5 }), mat('#121215', 0.5)]);
+  board.castShadow = board.receiveShadow = true; pcbB.add(board);
+  // a part as a box: w along the board's x, l along its length, h tall, all in mm
+  const part = (x, y, w, l, h, c, r = 0, up = 0) => { const [X, Z] = bxz(x, y); return box(w * BS, h * BS, l * BS, c, X, BT + (up + h / 2) * BS, Z, pcbB, r * BS); };
+  const pcyl = (x, y, rad, h, c, up = 0) => { const [X, Z] = bxz(x, y); return cyl(rad * BS, rad * BS, h * BS, c, X, BT + (up + h / 2) * BS, Z, pcbB, 20); };
+  // brass 10 mm standoffs at the four mounting holes, down to the top plate
+  [[5.493, 9.167], [78.507, 9.167], [5.493, 155.833], [78.507, 155.833]].forEach(([x, y]) => { const [X, Z] = bxz(x, y); cyl(2.5 * BS, 2.5 * BS, 0.044, BRASS, X, -0.022, Z, pcbB, 12); pcyl(x, y, 2.8, 2, BRASS); });
+  const BLK = mat('#1c1c20', 0.45), CHIP = mat('#202024', 0.55), SILV = mat('#c9ccd1', 0.3, 0.85), GOLDP = mat('#e3c06a', 0.3, 0.8), WHT = mat('#efeee8', 0.55);
+  // raspberry pi 2x20 shrouded header down the left side
+  part(5, 122, 8.9, 51, 9, BLK, 0.6); part(5, 122, 5.6, 48.5, 0.4, mat('#0a0a0c', 0.8), 0, 9);
+  // l298 standing against the 6396bg heatsink at the back, with the 470 uF bulk cap in front of it
+  const HSK = mat('#16161a', 0.4, 0.4);
+  part(42, 17, 42, 2.5, 25, HSK, 0.3);
+  for (let i = 0; i < 7; i++) part(23 + i * 6.33, 9, 1.5, 15, 25, HSK, 0.2);
+  part(42, 20.6, 20, 4.6, 17.5, CHIP, 0.4); part(42, 18.4, 20, 0.3, 19, SILV);
+  pcyl(42, 33.5, 4.15, 11.5, mat('#c9ccd1', 0.35, 0.7)); pcyl(42, 33.5, 4.15, 1, BLK, 11.5); part(42, 33.5, 8.3, 8.3, 0.6, BLK);
+  // flyback diodes, buck inductors and their big ceramics, the reverse-polarity fet, ptc fuse and battery terminal
+  [[23.5, 30.3], [31.5, 30.3], [23.5, 35.4], [31.5, 35.4], [52.5, 30.3], [60.5, 30.3], [52.5, 35.4], [60.5, 35.4]].forEach(([x, y]) => part(x, y, 4.4, 3.4, 2.2, CHIP, 0.3));
+  [[39.8, 47.4], [59, 47.4]].forEach(([x, y]) => part(x, y, 8, 8, 4, mat('#3b3b40', 0.6), 0.6));
+  [[46.5, 54.6], [46.5, 58.3], [65.7, 54.6], [65.7, 58.3], [31.36, 156.81]].forEach(([x, y]) => part(x, y, 3.2, 2.5, 2, mat('#b89a6a', 0.6), 0.2));
+  part(20.6, 46, 6.2, 6.6, 2.3, CHIP, 0.3);
+  part(11.5, 43.3, 3.2, 13, 15, mat('#d9952b', 0.5), 1.2);
+  part(4.75, 45.4, 9.5, 22.5, 10, mat('#2d6fd0', 0.45), 0.6);
+  // jst-ph motor connectors and the two acs712 current sensors
+  [[4, 25], [80, 25]].forEach(([x, y]) => part(x, y, 5, 16, 6, WHT, 0.4));
+  [[14.5, 27], [69, 22]].forEach(([x, y]) => part(x, y, 4.9, 3.9, 1.5, CHIP, 0.2));
+  // three stm32 zones: mcu, two mcp2515 + sn65hvd230 pairs and a 16 mhz crystal each
+  [[42, 84], [42, 140]].forEach(([x, y]) => { part(x, y, 10, 10, 1.4, CHIP, 0.3); pcyl(x - 3.6, y + 3.6, 0.5, 0.05, mat('#3a3a40', 0.6), 1.4); });
+  [[26.4, 139.5], [57.6, 140.5], [26.9, 102], [57.1, 102], [26.9, 84], [57.1, 84]].forEach(([x, y]) => part(x, y, 4.4, 6.5, 1.1, CHIP, 0.2));
+  [[16.8, 140], [67.2, 140], [17.6, 102], [66.4, 102], [17.6, 84], [66.4, 84], [40, 60.5]].forEach(([x, y]) => part(x, y, 3.9, 4.9, 1.5, CHIP, 0.2));
+  [[59.7, 91], [40.5, 73.6], [24.3, 77], [60.2, 147], [24.3, 133], [43, 150.2], [59.7, 110], [24.3, 94.5]].forEach(([x, y]) => part(x, y, 3.2, 2.5, 0.8, SILV, 0.2));
+  // can isolation dip switches (blue, two white sliders) and the reset / self-test buttons
+  [[68.5, 73, 1], [7.6, 88, 1], [69.4, 152.5, 0], [14.6, 152.5, 0], [70, 116.3, 0], [14, 116.3, 0]].forEach(([x, y, turned]) => {
+    part(x, y, turned ? 6.8 : 5.6, turned ? 5.6 : 6.8, 2.5, mat('#2f62c9', 0.45), 0.3);
+    [-1.27, 1.27].forEach(o => part(turned ? x : x + o, turned ? y + o : y, turned ? 2.2 : 1, turned ? 1 : 2.2, 0.6, WHT, 0, 2.5));
+  });
+  [[27, 67.8], [57, 67.8], [25.5, 124.8], [58.5, 124.8], [42, 110]].forEach(([x, y]) => { part(x, y, 4.5, 4.5, 1.5, SILV, 0.3); pcyl(x, y, 1.1, 0.8, BLK, 1.5); });
+  // headers: black strips with gold pins, along the right edge, the cockpit side and the front
+  const header = (x, y, n, alongY) => {
+    const len = n * 2.54; part(x, y, alongY ? 2.5 : len, alongY ? len : 2.5, 2.5, BLK, 0.3);
+    for (let i = 0; i < n; i++) { const o = (i - (n - 1) / 2) * 2.54; part(alongY ? x : x + o, alongY ? y + o : y, 0.64, 0.64, 6, GOLDP, 0, 2.5); }
+  };
+  [[76.4, 61.5, 13], [76.4, 133.5, 13], [76.4, 101, 10], [81.5, 47.5, 7], [81.5, 64.8, 5], [81.5, 75.4, 2], [81.5, 82.75, 3], [81.5, 93.5, 5],
+    [81.5, 104.5, 3], [81.5, 126, 5], [81.5, 140, 4], [2.5, 74.62, 3], [2.5, 67.27, 2], [11.1, 105.5, 3], [35.35, 156.95, 2]].forEach(([x, y, n]) => header(x, y, n, true));
+  [[29.12, 162.15, 3], [21.77, 162.15, 2], [42, 162.25, 3], [54.88, 162.15, 3], [62.23, 162.15, 2]].forEach(([x, y, n]) => header(x, y, n, false));
+  // 3 mm leds: yellow blinkers wrapping the four corners, red brake lights along the back; 0603 status leds in each zone
+  const tled = (x, y, c) => { pcyl(x, y, 1.5, 3, c); const [X, Z] = bxz(x, y); ball(1.5 * BS, c, X, BT + 3 * BS, Z, pcbB); };
+  const YEL = glowM('#ffc93c'), RED = glowM('#ff3b3b'), GRN = glowM('#58f08a');
+  [[-8.79, -0.78], [92.79, -0.78], [-6.6, -4.13], [90.6, -4.13], [-4.42, -7.48], [88.42, -7.48], [1.1, 161.34], [82.9, 161.34],
+    [-1.58, 156.54], [85.58, 156.54], [-3.85, 151.86], [88.27, 151.74]].forEach(([x, y]) => tled(x, y, YEL));
+  [[68.5, -2.6], [76.5, -2.6], [15.5, -2.6], [7.5, -2.6]].forEach(([x, y]) => tled(x, y, RED));
+  [[34.5, 69.3, YEL], [39.5, 69.3, YEL], [44.5, 69.3, RED], [49.5, 69.3, GRN], [34.5, 105.5, YEL], [39.5, 105.5, YEL], [44.5, 105.35, RED], [49.5, 105.5, GRN],
+    [34.5, 125.8, YEL], [39.5, 125.8, YEL], [44.5, 125.8, RED], [49.5, 125.8, GRN], [12.5, 57.3, GRN], [12.5, 67.3, GRN], [12.5, 72.3, GRN], [12.5, 77.3, GRN]]
+    .forEach(([x, y, c]) => part(x, y, 1.6, 0.8, 0.6, c));
   projects['rc-car'] = { group: rcG, object: 'RC car in the project wall', focus: [-4.2, YC + rows[1], ZC], view: [3.0, 0.3, 0.2], normal: [1, 0, 0] };
 
   // other projects, also floating: a pink pcb, the ring mouse, a small robot arm
@@ -2960,8 +3010,18 @@ const crtObj = new CSS3DObject($('#crtUI')); crtObj.visible = false; scene.add(c
 // see-through material: lets the html dashboard behind the canvas show through the tube while staying occluded properly
 const CRT_HOLE = new THREE.MeshBasicMaterial({ color: 0x000000, opacity: 0, blending: THREE.NoBlending });
 let crtOn = null, crtView = null;
+// scrolling by hand: inside the css3d layer the browser often won't scroll on its own, for wheels or for touch drags
+function handScroll(el) {
+  el.addEventListener('wheel', e => { el.scrollTop += e.deltaY; e.preventDefault(); }, { passive: false });
+  let y0 = null;
+  el.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse') { y0 = e.clientY; el.setPointerCapture(e.pointerId); } });
+  el.addEventListener('pointermove', e => { if (y0 === null) return; el.scrollTop -= (e.clientY - y0) * 2.2; y0 = e.clientY; });
+  el.addEventListener('pointerup', () => { y0 = null; }); el.addEventListener('pointercancel', () => { y0 = null; });
+  el.style.touchAction = 'none';
+}
+handScroll($('#crtBody'));
 function crtRender() {
-  const ui = $('#crtUI'), p = PROJECTS[crtOn]; ui.replaceChildren();
+  const ui = $('#crtBody'), p = PROJECTS[crtOn]; ui.replaceChildren(); ui.scrollTop = 0;
   const add = (tag, text, cls) => { const n = el(tag, cls || '', text); ui.append(n); return n; };
   const detail = (pid, back) => {
     const d = data[pid] || {};
