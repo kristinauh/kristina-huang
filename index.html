@@ -343,9 +343,12 @@ button { font: inherit; cursor: pointer; }
 #panel .pub { display: inline-flex; align-items: center; gap: 6px; color: rgba(220, 242, 255, .82); font-size: 13px; font-weight: 700; }
 #panel .pub input { accent-color: #ff9cc0; width: 16px; height: 16px; }
 /* public site: read-only, only what was chosen to share */
-body.public #note, body.public #panel .row, body.public #panel .tabs, body.public #stepForm, body.public #linkForm,
-body.public #panel .pane[data-pane="overview"] > div:has(#pNotes), body.public #panel .x { display: none; }
-body.public #panel .list input { pointer-events: none; }
+body.public #note, #panel .row, #panel .tabs, #stepForm, #linkForm,
+#panel .pane[data-pane="overview"] > div:has(#pNotes), #panel .x { display: none; }
+#panel .list input { pointer-events: none; }
+#pMeta { margin-top: 10px; font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; color: #9fd8f0; }
+#pMeta .st { display: inline-block; padding: 4px 8px; border-radius: 99px; background: rgba(255,156,192,.18); color: #ffb3cf; margin-right: 8px; }
+#pNow { margin: 0; line-height: 1.5; }
 /* the office computer: an orange crt terminal you type into, or a clean portfolio website */
 #computer {
   width: 800px; height: 576px; display: flex; flex-direction: column; overflow: hidden; border-radius: 6px;
@@ -551,6 +554,7 @@ body.public #panel .list input { pointer-events: none; }
       <p class="kicker" id="pObject"></p>
       <h2 id="pName"></h2>
       <p id="pTag"></p>
+      <p id="pMeta"></p>
     </div>
     <button class="icon-btn" id="close" aria-label="Close project" hidden>×</button>
   </div>
@@ -580,6 +584,10 @@ body.public #panel .list input { pointer-events: none; }
   </nav>
 
   <section class="pane on" data-pane="overview">
+    <div id="nowBox">
+      <h3>Where it's at</h3>
+      <p id="pNow"></p>
+    </div>
     <div>
       <h3>Next steps</h3>
       <ul class="list" id="steps"></ul>
@@ -3448,6 +3456,10 @@ function renderPanel() {
   $('#pName').textContent = d.name || NAMES[pid];
   $('#pTag').textContent = d.tagline || (window.PUBLIC ? 'Details coming soon.' : db ? '' : 'Nothing saved yet');
   $('#pPublic').checked = !!d.public;
+  const meta = $('#pMeta'); meta.replaceChildren();
+  if (d.status) meta.append(el('span', 'st', d.status));
+  if (d.updated) meta.append(document.createTextNode('updated ' + fmtDate(d.updated)));
+  $('#pNow').textContent = d.now || ''; $('#nowBox').hidden = !d.now;
 
   const steps = $('#steps'); steps.replaceChildren();
   (d.steps || []).forEach((s, i) => {
@@ -3458,7 +3470,7 @@ function renderPanel() {
     li.append(cb, lb, removeBtn('Remove step', () => save(pid, { steps: d.steps.filter((_, j) => j !== i).map(x => ({ ...x })) })));
     steps.append(li);
   });
-  if (!(d.steps || []).length) steps.append(el('p', 'empty', 'No steps yet.'));
+  if (!(d.steps || []).length) steps.append(el('p', 'empty', 'Nothing planned yet.'));
 
   const links = $('#links'); links.replaceChildren();
   (d.links || []).forEach((l, i) => {
@@ -3468,7 +3480,7 @@ function renderPanel() {
     li.append(a, el('span', 'meta', host), removeBtn('Remove link', () => save(pid, { links: d.links.filter((_, j) => j !== i).map(x => ({ ...x })) })));
     links.append(li);
   });
-  if (!(d.links || []).length) links.append(el('p', 'empty', 'Add artifact links, repos and references here.'));
+  if (!(d.links || []).length) links.append(el('p', 'empty', 'No links yet.'));
 
   if (document.activeElement !== $('#pNotes')) $('#pNotes').value = d.notes || '';
 
