@@ -350,19 +350,6 @@ body.public #note, #panel .row, #panel .tabs, #stepForm, #linkForm,
 #pMeta .st { display: inline-block; padding: 4px 8px; border-radius: 99px; background: rgba(255,156,192,.18); color: #ffb3cf; margin-right: 8px; }
 #pNow { margin: 0; line-height: 1.5; }
 /* the office computer: an orange crt terminal you type into, or a clean portfolio website */
-#crtUI { width: 640px; height: 400px; display: flex; overflow: hidden; pointer-events: auto; position: relative;
-  font: 19px/1.45 ui-monospace, Menlo, monospace; background: var(--bg); color: var(--fg); text-shadow: 0 0 6px var(--fg); border-radius: 10px; }
-#crtUI::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: 10px;
-  background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.45)); }
-/* scrolling happens on an inner box: browsers won't wheel-scroll the 3d-transformed element itself */
-#crtBody { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box; padding: 26px 30px; }
-#crtUI h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: .04em; }
-#crtUI h2 { font-size: 14px; margin: 18px 0 6px; letter-spacing: .14em; opacity: .7; font-weight: 600; }
-#crtUI p, #crtUI ul { margin: 0; } #crtUI ul { padding: 0; list-style: none; }
-#crtUI li { padding: 2px 0; } #crtUI .dim { opacity: .6; }
-#crtUI a, #crtUI button { color: inherit; font: inherit; text-shadow: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
-#crtUI .row { display: flex; gap: 14px; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed color-mix(in srgb, var(--fg) 30%, transparent); }
-#crtUI .row button { text-decoration: none; } #crtUI .row button:hover { text-decoration: underline; }
 #computer {
   width: 800px; height: 576px; display: flex; flex-direction: column; overflow: hidden; border-radius: 6px;
   opacity: 0; transition: opacity .4s .45s; backface-visibility: hidden;
@@ -525,7 +512,6 @@ body.public #note, #panel .row, #panel .tabs, #stepForm, #linkForm,
 
 <div id="labels"></div>
 
-<div id="crtUI" hidden><div id="crtBody"></div></div>
 <div id="computer" hidden>
   <div class="pc-bar" id="pcBar">
     <span id="pcTitle">kh@workbench: ~</span>
@@ -3006,64 +2992,251 @@ const css3d = new CSS3DRenderer();
 Object.assign(css3d.domElement.style, { position: 'fixed', inset: '0', pointerEvents: 'none' });
 document.body.insertBefore(css3d.domElement, canvas);
 const pcObj = new CSS3DObject($('#computer')); pcObj.visible = false; scene.add(pcObj);
-const crtObj = new CSS3DObject($('#crtUI')); crtObj.visible = false; scene.add(crtObj);
-// see-through material: lets the html dashboard behind the canvas show through the tube while staying occluded properly
-const CRT_HOLE = new THREE.MeshBasicMaterial({ color: 0x000000, opacity: 0, blending: THREE.NoBlending });
-let crtOn = null, crtView = null;
-// scrolling by hand: inside the css3d layer the browser often won't scroll on its own, for wheels or for touch drags
-function handScroll(el) {
-  el.addEventListener('wheel', e => { el.scrollTop += e.deltaY; e.preventDefault(); }, { passive: false });
-  let y0 = null;
-  el.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse') { y0 = e.clientY; el.setPointerCapture(e.pointerId); } });
-  el.addEventListener('pointermove', e => { if (y0 === null) return; el.scrollTop -= (e.clientY - y0) * 2.2; y0 = e.clientY; });
-  el.addEventListener('pointerup', () => { y0 = null; }); el.addEventListener('pointercancel', () => { y0 = null; });
-  el.style.touchAction = 'none';
+// the dashboard is drawn onto the tube's own texture; clicks and scrolling are worked out from where the ray hits
+// the glass, so nothing depends on the browser hit-testing html inside a 3d transform
+let crtOn = null, crtView = null, crtScroll = 0, crtMax = 0, crtHits = [];
+const CRT_W = 640, crtCanvas = document.createElement('canvas'), crtCtx = crtCanvas.getContext('2d');
+const crtTex = new THREE.CanvasTexture(crtCanvas); crtTex.colorSpace = THREE.SRGBColorSpace;
+const crtMat = new THREE.MeshBasicMaterial({ map: crtTex, toneMapped: false });
+// the tapeout tube can show a sketch of the chip: block proportions and names only, no real layout or process data
+const chip = { vb: null, sel: 'die' };
+const CHIP_INFO = {
+  die: ['Whole chip', 'The die with its pad ring. Scroll or use + / − to zoom, drag to pan, click a block.'],
+  pads: ['Pad ring', 'Bond pads and their I/O cells around the edge of the die.'],
+  wires: ['Top-level wiring', 'Signals and supplies routed from the pads into the core.'],
+  power: ['Power rails', 'Analog supply, digital supply and ground running down both sides of the core.'],
+  digital: ['Digital strip', 'Input buffers and binary flip-flops on the left, the 3-to-7 decoder and thermometer flip-flops on the right.'],
+  therm: ['Thermometer section', 'Seven rows of 32 unit cells plus their decoder and flip-flops. My section.'],
+  binary: ['Binary row', '31 unit cells in groups of 1, 2, 4, 8 and 16 for the five low bits.'],
+  bias: ['Bias block', 'Sets the current every unit cell copies. It sits mid-array so all rows see the same bias.'],
+  ctrl: ['Control lines', '24 complementary switch lines from the digital strip down to the rows.'],
+};
+function chipSVG() {
+  const f = n => +n.toFixed(2), r = (x, y, w, h, c = '') => `<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}"${c ? ` class="${c}"` : ''}/>`;
+  const x0 = 375.5, W = 249, x1 = x0 + W, cw = W / 35;
+  // pad ring: corner cells, then nine pads per side with an I/O cell behind each
+  let pads = r(14, 14, 972, 972, 'ring');
+  [[18, 18], [886, 18], [18, 886], [886, 886]].forEach(([x, y]) => pads += r(x, y, 96, 96, 'io'));
+  const padAt = [];
+  for (let i = 0; i < 9; i++) {
+    const p = 160 + i * 85; padAt.push(p);
+    pads += r(p - 28, 20, 56, 56) + r(p - 24, 78, 48, 34, 'io') + r(p - 28, 924, 56, 56) + r(p - 24, 888, 48, 34, 'io')
+      + r(20, p - 28, 56, 56) + r(78, p - 24, 34, 48, 'io') + r(924, p - 28, 56, 56) + r(888, p - 24, 34, 48, 'io');
+  }
+  // rows top to bottom, with the bias block between T2 and T3
+  const row = (y0, id) => {
+    const dummy = id === 'B' ? [0, 1, 17, 34] : [0, 17, 34];
+    let o = r(x0, y0, W, 31.5, 'box');
+    for (let i = 0; i < 35; i++) {
+      const cx = x0 + i * cw, d = dummy.includes(i) ? 'dummy' : '';
+      o += r(cx + 0.6, y0 + 1.2, cw - 1.2, 13, d) + r(cx + 1, y0 + 16, cw / 2 - 1.5, 7, d) + r(cx + cw / 2 + 0.5, y0 + 16, cw / 2 - 1.5, 7, d) + r(cx + 0.6, y0 + 25.5, cw - 1.2, 4.5, 'rail');
+    }
+    return o + `<text x="${x0 - 32}" y="${f(y0 + 19)}" font-size="9" text-anchor="end">${id === 'B' ? 'B0–B4' : id}</text>`;
+  };
+  let y = 357, rowsSvg = '', biasY = 0;
+  const rowMid = {};
+  ['B', 'T0', 'T1', 'T2', 'bias', 'T3', 'T4', 'T5', 'T6'].forEach(id => {
+    const h = id === 'bias' ? 36 : 31.5; rowMid[id] = y + h / 2;
+    if (id === 'bias') {
+      biasY = y + h / 2;
+      let o = r(x0, y, W, h, 'box');
+      for (let i = 0; i < 24; i++) { const c = i < 2 || i > 21 ? 'dummy' : '', bx = x0 + 3 + i * 10.25; o += r(bx, y + 5, 8, 11, c) + r(bx, y + 20, 8, 11, c); }
+      rowsSvg += `<g data-part="bias" style="color:#7fe3d6">${o}<text x="${x0 - 32}" y="${f(y + 21)}" font-size="9" text-anchor="end">BIAS</text></g>`;
+    } else if (id === 'B') rowsSvg += `<g data-part="binary" data-name="B0–B4" style="color:#ffcf6a">${row(y, id)}</g>`;
+    else rowsSvg += `<g data-part="therm" data-name="${id}" style="color:#9fe8a8">${row(y, id)}</g>`;
+    y += h + 2.75;
+  });
+  // digital strip above the array: buffers, binary flip-flops, then the decoder and thermometer flip-flops
+  let dig = r(x0, 333, W, 20, 'box') + r(x0, 333.5, W, 1.2, 'rail') + r(x0, 351.3, W, 1.2, 'rail');
+  for (let i = 0; i < 4; i++) dig += r(x0 + 2 + i * 7, 337, 5.5, 12);
+  for (let i = 0; i < 5; i++) dig += r(x0 + 33 + i * 16, 336, 14, 14);
+  let tdig = r(x0 + 116, 336, 24, 14);
+  for (let i = 0; i < 7; i++) tdig += r(x0 + 142 + i * 15.2, 336, 13.6, 14);
+  // control lines down the right side, each ending at its row
+  let ctrl = '';
+  const targets = [...Array(10).fill('B'), ...['T0', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6'].flatMap(t => [t, t])];
+  targets.forEach((t, i) => { const lx = f(x1 + 3 + i * 0.55); ctrl += `<line class="ln" x1="${lx}" y1="343" x2="${lx}" y2="${f(rowMid[t])}"/>`; });
+  // supply lines on both sides of the core
+  let pwr = '';
+  [x0 - 26, x0 - 18.5, x0 - 11, x1 + 20, x1 + 27.5, x1 + 35].forEach(px => pwr += r(px, 333, 5, 334));
+  // a few top-level wires from the pads in toward the core
+  const P = d => `<path class="wire" d="${d}"/>`;
+  let wires = '';
+  padAt.forEach((p, i) => { const sx = x0 + 14 + i * 27.6; wires += P(`M${p} 112V${200 + i * 9}H${f(sx)}V333`); });
+  wires += P(`M112 ${padAt[4]}H300V${f(biasY)}H${x0}`) + P(`M888 ${padAt[4]}H700V343H${x1}`);
+  [3, 4, 5].forEach(i => wires += P(`M${padAt[i]} 888V${760 + (i - 3) * 12}H${500 + (i - 4) * 60}V667`));
+  [2, 6].forEach(i => { wires += P(`M112 ${padAt[i]}H${f(x0 - 23.5)}V${i === 2 ? 333 : 667}`) + P(`M888 ${padAt[i]}H${f(x1 + 37.5)}V${i === 2 ? 333 : 667}`); });
+  return `<svg class="chipsvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" viewBox="-20 -20 1040 1040" role="img" aria-label="Sketch of the 8-bit DAC chip floorplan">
+<g id="chip-die" data-part="die">${r(0, 0, 1000, 1000, 'diebg')}
+<g data-part="pads">${pads}</g>
+<g data-part="wires" style="color:#d6d6d6">${wires}</g>
+<text x="140" y="860" font-size="16">8-BIT DAC · 2026</text>
+<g id="chip-core">
+<g data-part="power" style="color:#e9f7ea">${pwr}</g>
+<g data-part="ctrl" style="color:#ff9a64">${ctrl}</g>
+<g data-part="digital" style="color:#ff8a96">${dig}</g>
+<g data-part="digital therm" data-name="Thermometer digital" style="color:#9fe8a8">${tdig}</g>
+${rowsSvg}
+</g></g></svg>`;
 }
-handScroll($('#crtBody'));
-function crtRender() {
-  const ui = $('#crtBody'), p = PROJECTS[crtOn]; ui.replaceChildren(); ui.scrollTop = 0;
-  const add = (tag, text, cls) => { const n = el(tag, cls || '', text); ui.append(n); return n; };
+// the chip sketch is drawn to an image and painted onto the tube, so pan, zoom and picking all go through the ray too
+let crtChip = false, chipSvg = null, chipImg = null, chipAnim = 0;
+const CHIP_BAR = 46, CHIP_CAP = 58, CHIP_PAD = 18;
+const chipArea = () => ({ x: CHIP_PAD, y: CHIP_BAR, w: CRT_W - CHIP_PAD * 2, h: crtCanvas.height - CHIP_BAR - CHIP_CAP });
+function chipEnter() {
+  crtChip = true; crtScroll = 0;
+  const A = chipArea();
+  let host = document.getElementById('chipHost');
+  if (!host) { host = document.createElement('div'); host.id = 'chipHost'; host.style.cssText = 'position:fixed;left:-10000px;top:0;visibility:hidden;pointer-events:none'; document.body.append(host); }
+  host.style.width = A.w + 'px'; host.style.height = A.h + 'px';
+  host.innerHTML = chipSVG(); chipSvg = host.firstElementChild; chipSvg.setAttribute('width', A.w); chipSvg.setAttribute('height', A.h);
+  chip.vb = chipFit(chipBox('die'), 0.02); chipSelect(chip.sel, false);
+}
+const chipParts = k => [...chipSvg.querySelectorAll('[data-part]')].filter(g => g.dataset.part.split(' ').includes(k));
+function chipBox(k) {
+  const gs = k === 'core' ? [chipSvg.querySelector('#chip-core')] : k === 'die' ? [chipSvg.querySelector('#chip-die')] : chipParts(k);
+  const bs = gs.map(g => g.getBBox()), x = Math.min(...bs.map(b => b.x)), y = Math.min(...bs.map(b => b.y));
+  return { x, y, width: Math.max(...bs.map(b => b.x + b.width)) - x, height: Math.max(...bs.map(b => b.y + b.height)) - y };
+}
+// keep the view box the same shape as the drawing area so zoom and pan map one to one
+function chipFit(b, pad = 0.1) {
+  const A = chipArea(), a = A.w / A.h; let w = b.width * (1 + pad * 2), h = b.height * (1 + pad * 2);
+  if (w / h < a) w = h * a; else h = w / a;
+  return { x: b.x + b.width / 2 - w / 2, y: b.y + b.height / 2 - h / 2, w, h };
+}
+function chipZoomed(k, fx = 0.5, fy = 0.5) { const v = chip.vb, w = Math.min(1600, Math.max(10, v.w * k)), h = w * v.h / v.w; return { x: v.x + (v.w - w) * fx, y: v.y + (v.h - h) * fy, w, h }; }
+function chipGo(to) {
+  cancelAnimationFrame(chipAnim);
+  if (reduced) { chip.vb = to; return chipPaint(); }
+  const from = { ...chip.vb }, t0 = performance.now();
+  const step = now => { const k = Math.min(1, (now - t0) / 350), e = 1 - (1 - k) ** 3; chip.vb = Object.fromEntries(Object.keys(to).map(n => [n, from[n] + (to[n] - from[n]) * e])); chipPaint(); if (k < 1) chipAnim = requestAnimationFrame(step); };
+  chipAnim = requestAnimationFrame(step);
+}
+function chipSelect(k, zoom) {
+  chip.sel = k;
+  chipSvg.classList.toggle('sel', k !== 'die' && k !== 'core');
+  chipSvg.querySelectorAll('[data-part]').forEach(g => g.classList.toggle('on', g.dataset.part.split(' ').includes(k)));
+  if (zoom) chipGo(chipFit(chipBox(k), k === 'die' ? 0.02 : 0.12)); else chipPaint();
+}
+// render the svg (with its styles inlined, in this tube's colour) to an image, then repaint the tube
+function chipPaint() {
+  const fg = PROJECTS[crtOn].crt.pal[1], v = chip.vb;
+  chipSvg.setAttribute('viewBox', `${v.x} ${v.y} ${v.w} ${v.h}`); chipSvg.style.color = fg;
+  const css = `<style>.diebg{fill:${fg};fill-opacity:.06;stroke:${fg};stroke-width:1.5;vector-effect:non-scaling-stroke}.box,.ring,.io{fill:none;stroke:currentColor;stroke-width:1;vector-effect:non-scaling-stroke}rect:not(.box):not(.ring):not(.io):not(.diebg){fill:currentColor}.dummy{opacity:.3}.rail{opacity:.5}.wire{fill:none;stroke:currentColor;stroke-width:2.5;opacity:.4}.ln{stroke:currentColor;stroke-width:.3}text{fill:currentColor;font-family:ui-monospace,Menlo,monospace;opacity:.75}svg.sel [data-part]:not(.on):not(#chip-die){opacity:.15}</style>`;
+  const src = new XMLSerializer().serializeToString(chipSvg).replace(/(<svg[^>]*>)/, '$1' + css);
+  const img = new Image(); img.onload = () => { chipImg = img; if (crtOn && crtChip) crtDraw(); };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(src);
+}
+function chipToSvg(at) { const A = chipArea(), v = chip.vb; return { x: v.x + (at.x - A.x) / A.w * v.w, y: v.y + (at.y - A.y) / A.h * v.h, fx: (at.x - A.x) / A.w, fy: (at.y - A.y) / A.h }; }
+function chipInArea(at) { const A = chipArea(); return at && at.x >= A.x && at.x <= A.x + A.w && at.y >= A.y && at.y <= A.y + A.h; }
+function chipPick(at) {
+  // smallest named block under the point
+  const p = chipToSvg(at); let best = null, bestA = Infinity;
+  chipSvg.querySelectorAll('[data-part]').forEach(g => { if (g.id === 'chip-die') return; const b = g.getBBox(), a = b.width * b.height;
+    if (p.x >= b.x && p.x <= b.x + b.width && p.y >= b.y && p.y <= b.y + b.height && a < bestA) { best = g; bestA = a; } });
+  if (best) chipSelect(best.dataset.part.split(' ').pop(), true);
+}
+function chipDraw(g, fg) {
+  // button bar along the top, the drawing in the middle, the caption underneath
+  g.font = '400 16px ui-monospace, Menlo, monospace'; let x = CHIP_PAD; crtHits = [];
+  const btn = (label, act, on) => { const w = g.measureText(label).width; g.globalAlpha = on ? 1 : 0.65; g.fillText(label, x, 30); if (on) g.fillRect(x, 34, w, 1.5);
+    crtHits.push({ x0: x - 4, x1: x + w + 4, y0: 6, y1: 42, act }); x += w + 16; };
+  btn('‹ status', () => { crtChip = false; crtDraw(); });
+  ['die', 'core', 'therm', 'binary', 'bias', 'digital', 'pads'].forEach(k => btn(k, () => chipSelect(k, true), chip.sel === k));
+  x = CRT_W - CHIP_PAD - 56; btn('−', () => chipGo(chipZoomed(1.6))); btn('+', () => chipGo(chipZoomed(1 / 1.6)));
+  g.globalAlpha = 1;
+  const A = chipArea(); if (chipImg) g.drawImage(chipImg, A.x, A.y, A.w, A.h);
+  const k = chip.sel, [t, d] = CHIP_INFO[k === 'core' ? 'die' : k] || CHIP_INFO.die, text = (k === 'core' ? 'Core' : t) + '  ' + (k === 'core' ? 'Unit-cell array, bias block, digital strip, control lines and power rails.' : d);
+  g.font = '400 14px ui-monospace, Menlo, monospace'; let line = '', y = A.y + A.h + 22;
+  for (const w of text.split(' ')) { const tt = line ? line + ' ' + w : w; if (g.measureText(tt).width > CRT_W - CHIP_PAD * 2 && line) { g.fillText(line, CHIP_PAD, y); y += 19; line = w; } else line = tt; }
+  g.fillText(line, CHIP_PAD, y);
+}
+function crtLines() {
+  // the page as a list of lines, some of them clickable
+  const p = PROJECTS[crtOn], out = [], push = (text, style, act) => out.push({ text, style, act });
   const detail = (pid, back) => {
     const d = data[pid] || {};
-    if (back) { const b = el('button', '', '< all projects'); b.onclick = () => { crtView = null; crtRender(); }; ui.append(b); }
-    add('h1', '> ' + (d.name || NAMES[pid] || pid).toUpperCase());
-    add('p', [d.status, d.updated && 'updated ' + fmtDate(d.updated)].filter(Boolean).join(' · ') || 'no status yet', 'dim');
-    if (d.tagline) add('p', d.tagline);
-    if (d.now) { add('h2', 'WHERE IT’S AT'); add('p', d.now); }
-    add('h2', 'NEXT STEPS'); const ul = add('ul');
-    (d.steps || []).forEach(s => ul.append(el('li', s.done ? 'dim' : '', (s.done ? '[x] ' : '[ ] ') + s.text)));
-    if (!(d.steps || []).length) ul.append(el('li', 'dim', 'nothing planned yet'));
-    if ((d.links || []).length) { add('h2', 'LINKS'); const ll = add('ul'); d.links.forEach(l => { const a = el('a', '', l.title); a.href = l.url; a.target = '_blank'; a.rel = 'noopener'; const li = el('li'); li.append('→ ', a); ll.append(li); }); }
+    if (back) push('< all projects', 'link', () => { crtView = null; crtScroll = 0; crtDraw(); });
+    push('> ' + (d.name || NAMES[pid] || pid).toUpperCase(), 'h1');
+    push([d.status, d.updated && 'updated ' + fmtDate(d.updated)].filter(Boolean).join(' · ') || 'no status yet', 'dim');
+    if (d.tagline) push(d.tagline, 'body');
+    if (pid === 'tapeout-lab') push('[ view the chip ]', 'link', () => { chipEnter(); });
+    if (d.now) { push('WHERE IT’S AT', 'h2'); push(d.now, 'body'); }
+    push('NEXT STEPS', 'h2');
+    (d.steps || []).forEach(st => push((st.done ? '[x] ' : '[ ] ') + st.text, st.done ? 'dim' : 'body'));
+    if (!(d.steps || []).length) push('nothing planned yet', 'dim');
+    if ((d.links || []).length) { push('LINKS', 'h2'); d.links.forEach(l => push('→ ' + l.title, 'link', () => window.open(l.url, '_blank', 'noopener'))); }
   };
-  if (p.crt.list && crtView) return detail(crtView, true);
-  if (p.crt.list) {
-    add('h1', '> WORKSHOP PROJECTS'); add('p', 'select a project', 'dim'); add('h2', 'INDEX');
+  if (p.crt.list && crtView) detail(crtView, true);
+  else if (p.crt.list) {
+    push('> WORKSHOP PROJECTS', 'h1'); push('select a project', 'dim'); push('INDEX', 'h2');
     Object.keys(PROJECTS).filter(k => PROJECTS[k].room === p.room && !PROJECTS[k].crt).forEach(k => {
-      const d = data[k] || {}, r = el('div', 'row'), b = el('button', '', d.name || NAMES[k] || k);
-      b.onclick = () => { crtView = k; crtRender(); }; r.append(b, el('span', 'dim', d.status || '')); ui.append(r);
+      const d = data[k] || {}; push((d.name || NAMES[k] || k) + (d.status ? '   ' + d.status : ''), 'row', () => { crtView = k; crtScroll = 0; crtDraw(); });
     });
-    return;
-  }
-  detail(crtOn);
+  } else detail(crtOn);
+  return out;
 }
+function crtDraw() {
+  const p = PROJECTS[crtOn], [bg, fg] = p.crt.pal, g = crtCtx, W2 = CRT_W, H2 = crtCanvas.height, pad = 30;
+  const STY = { h1: ['700 28px', 40, 0], h2: ['600 14px', 26, 14], body: ['400 19px', 27, 0], dim: ['400 17px', 25, 0], link: ['400 19px', 29, 0], row: ['400 19px', 36, 0] };
+  g.fillStyle = bg; g.fillRect(0, 0, W2, H2);
+  g.save(); g.fillStyle = fg; g.shadowColor = fg; g.shadowBlur = 8;
+  let y = pad - crtScroll; crtHits = [];
+  for (const ln of crtChip ? [] : crtLines()) {
+    const [font, lh, gap] = STY[ln.style]; g.font = `${font} ui-monospace, Menlo, monospace`; y += gap;
+    g.globalAlpha = ln.style === 'dim' ? 0.6 : ln.style === 'h2' ? 0.7 : 1;
+    // wrap long lines to the screen width
+    const rows = []; let cur = '';
+    for (const w of ln.text.split(' ')) { const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width > W2 - pad * 2 && cur) { rows.push(cur); cur = w; } else cur = t; }
+    rows.push(cur);
+    const top = y;
+    rows.forEach(r => { y += lh; g.fillText(r, pad, y - lh * 0.28); if (ln.style === 'link') g.fillRect(pad, y - lh * 0.18, g.measureText(r).width, 1.5); });
+    if (ln.style === 'row') { g.globalAlpha = 0.3; g.fillRect(pad, y + 2, W2 - pad * 2, 1); }
+    if (ln.act) crtHits.push({ x0: 0, x1: W2, y0: top + crtScroll, y1: y + crtScroll, act: ln.act });
+  }
+  crtMax = crtChip ? 0 : Math.max(0, y + crtScroll + pad - H2);
+  if (crtChip) chipDraw(g, fg);
+  g.restore();
+  // scanlines and a soft vignette, like the idle screens
+  g.fillStyle = 'rgba(0,0,0,.16)'; for (let i = 0; i < H2; i += 3) g.fillRect(0, i, W2, 1);
+  const v = g.createRadialGradient(W2 / 2, H2 / 2, H2 * 0.35, W2 / 2, H2 / 2, W2 * 0.62); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.45)'); g.fillStyle = v; g.fillRect(0, 0, W2, H2);
+  if (crtMax > 0) { g.fillStyle = fg; g.globalAlpha = 0.5; const th = H2 * H2 / (H2 + crtMax); g.fillRect(W2 - 8, (crtScroll / crtMax) * (H2 - th), 3, th); g.globalAlpha = 1; }
+  crtTex.needsUpdate = true;
+}
+function crtRender() { if (crtOn) crtDraw(); }
 function crtOpen(pid) {
-  const c = PROJECTS[pid].crt, ui = $('#crtUI');
-  crtOn = pid; crtView = null; c.saved = c.mesh.material; c.mesh.material = CRT_HOLE;
-  const g = c.mesh.geometry.parameters;
-  ui.style.height = Math.round(640 * g.height / g.width) + 'px';
-  ui.style.setProperty('--bg', c.pal[0]); ui.style.setProperty('--fg', c.pal[1]);
-  ui.hidden = false; crtRender(); placeCrt();
+  const c = PROJECTS[pid].crt, gp = c.mesh.geometry.parameters;
+  crtOn = pid; crtView = null; crtScroll = 0; crtChip = false;
+  crtCanvas.width = CRT_W; crtCanvas.height = Math.round(CRT_W * gp.height / gp.width);
+  c.saved = c.mesh.material; c.mesh.material = crtMat; crtDraw(); placeCrt();
 }
 function crtClose() {
   if (!crtOn) return; const c = PROJECTS[crtOn].crt;
-  c.mesh.material = c.saved; crtOn = null; $('#crtUI').hidden = true; crtObj.visible = false;
+  c.mesh.material = c.saved; crtOn = null;
+}
+// where on the page (canvas pixels, scroll included) a pointer lands, or null if it misses the glass
+function crtAt(e) {
+  const r = canvas.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
+  const hit = ray.intersectObject(PROJECTS[crtOn].crt.mesh, false)[0];
+  return hit && hit.uv ? { x: hit.uv.x * CRT_W, y: (1 - hit.uv.y) * crtCanvas.height + crtScroll } : null;
+}
+function crtScrollBy(dy) { const n = Math.min(crtMax, Math.max(0, crtScroll + dy)); if (n !== crtScroll) { crtScroll = n; crtDraw(); } }
+canvas.addEventListener('wheel', e => {
+  const at = crtOn && crtAt(e); if (!at) return; e.preventDefault();
+  if (crtChip) { if (chipInArea(at)) { const p = chipToSvg(at); chip.vb = chipZoomed(Math.exp(e.deltaY * 0.0015), p.fx, p.fy); chipPaint(); } }
+  else crtScrollBy(e.deltaY);
+}, { passive: false });
+// dragging on the glass scrolls the page, or pans the chip drawing
+function crtDrag(e) {
+  const at = crtAt(e), last = down.at; down.at = at; if (!at || !last) return;
+  if (crtChip) { const v = chip.vb, A = chipArea(); chip.vb = { ...v, x: v.x - (at.x - last.x) / A.w * v.w, y: v.y - (at.y - last.y + 0) / A.h * v.h }; chipPaint(); }
+  else crtScrollBy(-(e.clientY - down.lastY) * 1.6);
 }
 function placeCrt() {
   const p = PROJECTS[crtOn], s = p.crt.mesh;
   s.updateWorldMatrix(true, false); s.matrixWorld.decompose(_sp, _sq, _ss);
   const worldW = s.geometry.parameters.width * _ss.x;
-  crtObj.position.copy(_sp).add(new THREE.Vector3(0, 0, 0.015).applyQuaternion(_sq));
-  crtObj.quaternion.copy(_sq); crtObj.scale.setScalar(worldW / 640);
   p.focus = _sp.toArray(); p.view = new THREE.Vector3(0, 0, worldW * 1.6).applyQuaternion(_sq).toArray();
 }
 const _sp = new THREE.Vector3(), _sq = new THREE.Quaternion(), _ss = new THREE.Vector3();
@@ -3191,14 +3364,15 @@ function placeLabels() {
 
 // input: tap opens, drag turns the room, pointer position pans when zoomed in
 let down = null;
-canvas.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY, lastX: e.clientX, moved: false }; });
+canvas.addEventListener('pointerdown', e => { const at = crtOn && crtAt(e); down = { x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, moved: false, onGlass: !!at, at: at || null }; });
 addEventListener('pointermove', e => {
   pointer.x = (e.clientX / W) * 2 - 1;
   pointer.y = -((e.clientY / H) * 2 - 1);
   if (down) {
     if (Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8) down.moved = true;
     if (down.moved && !current) dragAngle -= (e.clientX - down.lastX) * 0.005;
-    down.lastX = e.clientX;
+    if (down.moved && crtOn && down.onGlass) crtDrag(e);
+    down.lastX = e.clientX; down.lastY = e.clientY;
   }
   if (e.pointerType === 'mouse' && e.target === canvas) {
     hovered = pick(e);
@@ -3212,6 +3386,7 @@ addEventListener('pointerup', e => {
   const moved = down.moved; down = null;
   if (moved || e.target !== canvas) return;
   if (current === 'computer') return close();
+  if (crtOn && current === crtOn) { const at = crtAt(e); if (!at) return close(); const h = crtHits.find(h => at.x >= h.x0 && at.x <= h.x1 && at.y >= h.y0 && at.y <= h.y1); if (h) { sfx('click'); h.act(); } else if (crtChip && chipInArea(at)) chipPick(at); return; }
   if (current === 'records') { const r = pickRecord(e); if (r === 'turntable') return stopRecord(true); if (r) return playRecord(r); }
   const hit = pick(e);
   if (hit?.startsWith('door:')) {
@@ -3266,7 +3441,6 @@ function frame() {
   if (PC) PC.retroScreen.material = idle ? PC.retroScreen.userData.idle : PC.retroScreen.userData.hole;
   pcObj.visible = room === 'office' && !!PC && PC.retro.parent.parent.visible && !idle;
   if (pcObj.visible) placeScreen();
-  crtObj.visible = !!crtOn && PROJECTS[crtOn].room === room; if (crtObj.visible) placeCrt();
   css3d.render(scene, camera);
   requestAnimationFrame(frame);
 }
@@ -3347,7 +3521,7 @@ const panel = $('#panel');
 const setHidden = (pid, hidden) => (PROJECTS[pid]?.hide || []).forEach(o => { o.visible = !hidden; });
 function open(pid) {
   if (PROJECTS[pid].noPanel) { if (current && current !== pid) close(); setHidden(pid, true); current = pid; hovered = null; $('#labels').classList.add('hide'); setGoal(pid); if (!VINYL.open) sfx('cabinet'); VINYL.open = true; return; }
-  if (PROJECTS[pid].crt) { if (current && current !== pid) close(); current = pid; hovered = null; $('#labels').classList.add('hide'); canvas.style.pointerEvents = 'none'; crtOpen(pid); setGoal(pid); return; }
+  if (PROJECTS[pid].crt) { if (current && current !== pid) close(); current = pid; hovered = null; $('#labels').classList.add('hide'); crtOpen(pid); setGoal(pid); return; }
   if (PROJECTS[pid].computer) { if (current && current !== pid) close(); current = pid; hovered = null; $('#labels').classList.add('hide'); canvas.style.pointerEvents = 'none'; showComputer(pcMode); return; }
   if (current) setHidden(current, false);
   setHidden(pid, true);
@@ -3359,7 +3533,7 @@ function open(pid) {
 function close() {
   if (current === 'records') { sfx('cabinet'); VINYL.open = false; VINYL.records.forEach(r => r.userData.hover = false); }
   if (current === 'computer') { canvas.style.pointerEvents = ''; $('#termKey').blur(); }
-  if (current && PROJECTS[current].crt) { canvas.style.pointerEvents = ''; crtClose(); }
+  if (current && PROJECTS[current].crt) crtClose();
   if (current) setHidden(current, false);
   current = null;
   panel.classList.remove('open'); panel.inert = true;
@@ -3553,7 +3727,6 @@ function closeComputer() { if (current === 'computer') close(); }
 setTimeout(() => showComputer(pcMode));
 // while you're using the computer the canvas steps aside so the page gets clicks and scrolling; clicking off it leaves
 addEventListener('pointerdown', e => { if (current === 'computer' && !e.target.closest('#computer')) close(); }, true);
-addEventListener('pointerdown', e => { if (crtOn && current === crtOn && !e.target.closest('#crtUI')) close(); }, true);
 $('#pcRetro').addEventListener('click', () => showComputer('retro'));
 $('#pcModern').addEventListener('click', () => showComputer('modern'));
 $('#pcClose').addEventListener('click', closeComputer);
